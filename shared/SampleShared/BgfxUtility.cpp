@@ -22,14 +22,8 @@
 #include <DirectXMath.h>
 
 #include <bgfx/bgfx.h>
-#include <bx/platform.h>
-#include <bx/math.h>
-#include <bx/pixelformat.h>
-#include <bx/file.h>
-#include <bx/mutex.h>
 
 #include <bgfx/platform.h>
-#include <bgfx/embedded_shader.h>
 
 #include <bx/uint32_t.h>
 
