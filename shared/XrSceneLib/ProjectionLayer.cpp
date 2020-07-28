@@ -25,7 +25,7 @@
 #include "Scene.h"
 #include "SceneContext.h"
 
-using namespace DirectX;
+//using namespace DirectX;
 
 ProjectionLayer::ProjectionLayer(const xr::SessionContext& sessionContext) {
     auto primaryViewConfiguraionType = sessionContext.PrimaryViewConfigurationType;

@@ -26,7 +26,7 @@ namespace sample::bg {
 
     std::tuple<XrGraphicsBindingD3D11KHR, winrt::com_ptr<ID3D11Device>, winrt::com_ptr<ID3D11DeviceContext>>
     __stdcall
-    CreateD3D11Binding(XrInstance instance,
+    BgfxCreateD3D11Binding(XrInstance instance,
                        XrSystemId systemId,
                        const xr::ExtensionContext& extensions,
                        bool singleThreadedD3D11Device,
