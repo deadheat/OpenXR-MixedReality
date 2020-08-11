@@ -55,7 +55,7 @@ namespace Pbr {
         DirectX::XMFLOAT2 TexCoord0;
         NodeIndex_t ModelTransformIndex; // Index into the node transforms
 
-        static const D3D11_INPUT_ELEMENT_DESC s_vertexDesc[6];
+        //static const D3D11_INPUT_ELEMENT_DESC s_vertexDesc[6];
     };
 
     struct PrimitiveBuilder {
@@ -88,19 +88,15 @@ namespace Pbr {
     namespace Texture {
         std::array<uint8_t, 4> LoadRGBAUI4(RGBAColor color);
 
-        winrt::com_ptr<ID3D11ShaderResourceView> LoadTextureImage(_In_ ID3D11Device* device,
-                                                                  _In_reads_bytes_(fileSize) const uint8_t* fileData,
+        winrt::com_ptr<bgfx::TextureHandle> LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData,
                                                                   uint32_t fileSize);
-        winrt::com_ptr<ID3D11ShaderResourceView> CreateFlatCubeTexture(_In_ ID3D11Device* device,
-                                                                       RGBAColor color,
-                                                                       DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
-        winrt::com_ptr<ID3D11ShaderResourceView> CreateTexture(_In_ ID3D11Device* device,
-                                                               _In_reads_bytes_(size) const uint8_t* rgba,
+        winrt::com_ptr<bgfx::TextureHandle> CreateFlatCubeTexture(RGBAColor color, bgfx::TextureFormat::Enum format = sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
+        winrt::com_ptr<bgfx::TextureHandle>
+        CreateTexture(_In_reads_bytes_(size) const uint8_t* rgba,
                                                                uint32_t size,
                                                                int width,
                                                                int height,
-                                                               DXGI_FORMAT format);
-        winrt::com_ptr<ID3D11SamplerState> CreateSampler(_In_ ID3D11Device* device,
-                                                         D3D11_TEXTURE_ADDRESS_MODE addressMode = D3D11_TEXTURE_ADDRESS_CLAMP);
+                                                               bgfx::TextureFormat::Enum format);
+        winrt::com_ptr<bgfx::UniformHandle> CreateSampler(const char* _uniqueName);
     } // namespace Texture
 } // namespace Pbr

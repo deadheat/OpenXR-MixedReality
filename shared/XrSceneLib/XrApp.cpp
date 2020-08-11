@@ -20,7 +20,6 @@
 #include <XrUtility/XrViewConfiguration.h>
 
 #include <SampleShared/FileUtility.h>
-#include <SampleShared/DxUtility.h>
 #include <SampleShared/BgfxUtility.h>
 #include <SampleShared/Trace.h>
 

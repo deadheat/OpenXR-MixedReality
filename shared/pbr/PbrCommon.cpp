@@ -7,6 +7,13 @@
 #include "stb_image.h"
 #include "PbrCommon.h"
 
+#include <bx/platform.h>
+#include <bx/math.h>
+#include <bx/pixelformat.h>
+
+#include <bgfx/platform.h>
+#include <bgfx/embedded_shader.h>
+
 using namespace DirectX;
 
 #define TRIANGLE_VERTEX_COUNT 3 // #define so it can be used in lambdas without capture
@@ -22,14 +29,14 @@ namespace Pbr {
         }
     } // namespace Internal
 
-    const D3D11_INPUT_ELEMENT_DESC Vertex::s_vertexDesc[6] = {
+    /*const D3D11_INPUT_ELEMENT_DESC Vertex::s_vertexDesc[6] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"TRANSFORMINDEX", 0, DXGI_FORMAT_R16_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-    };
+    };*/
 
     RGBAColor XM_CALLCONV FromSRGB(DirectX::XMVECTOR color) {
         RGBAColor linearColor{};
@@ -44,10 +51,10 @@ namespace Pbr {
     }
 
     PrimitiveBuilder& PrimitiveBuilder::AddAxis(float axisLength, float axisThickness, Pbr::NodeIndex_t transformIndex) {
-        AddCube(axisThickness + 0.01f, transformIndex, Pbr::FromSRGB(Colors::Gray));
-        AddCube({axisLength, axisThickness, axisThickness}, XMVECTORF32{axisLength / 2, 0, 0}, transformIndex, Pbr::FromSRGB(Colors::Red));
-        AddCube({axisThickness, axisLength, axisThickness}, XMVECTORF32{0, axisLength / 2, 0}, transformIndex, Pbr::FromSRGB(Colors::Green));
-        AddCube({axisThickness, axisThickness, axisLength}, XMVECTORF32{0, 0, axisLength / 2}, transformIndex, Pbr::FromSRGB(Colors::Blue));
+        AddCube(axisThickness + 0.01f, transformIndex, Pbr::FromSRGB(DirectX::Colors::Gray));
+        AddCube({axisLength, axisThickness, axisThickness}, DirectX::XMVECTORF32{axisLength / 2, 0, 0}, transformIndex, Pbr::FromSRGB(DirectX::Colors::Red));
+        AddCube({axisThickness, axisLength, axisThickness}, DirectX::XMVECTORF32{0, axisLength / 2, 0}, transformIndex, Pbr::FromSRGB(DirectX::Colors::Green));
+        AddCube({axisThickness, axisThickness, axisLength}, DirectX::XMVECTORF32{0, 0, axisLength / 2}, transformIndex, Pbr::FromSRGB(DirectX::Colors::Blue));
 
         return *this;
     }
@@ -70,29 +77,29 @@ namespace Pbr {
         for (uint32_t i = 0; i <= verticalSegments; i++) {
             const float v = 1 - (float)i / verticalSegments;
 
-            const float latitude = (i * XM_PI / verticalSegments) - XM_PIDIV2;
+            const float latitude = (i * DirectX::XM_PI / verticalSegments) - DirectX::XM_PIDIV2;
             float dy, dxz;
-            XMScalarSinCos(&dy, &dxz, latitude);
+            DirectX::XMScalarSinCos(&dy, &dxz, latitude);
 
             // Create a single ring of vertices at this latitude.
             for (uint32_t j = 0; j <= horizontalSegments; j++) {
-                const float longitude = j * XM_2PI / horizontalSegments;
+                const float longitude = j * DirectX::XM_2PI / horizontalSegments;
                 float dx, dz;
-                XMScalarSinCos(&dx, &dz, longitude);
+                DirectX::XMScalarSinCos(&dx, &dz, longitude);
                 dx *= dxz;
                 dz *= dxz;
 
                 // Compute tangent at 90 degrees along longitude.
                 float tdx, tdz;
-                XMScalarSinCos(&tdx, &tdz, longitude + XM_PI);
+                DirectX::XMScalarSinCos(&tdx, &tdz, longitude + DirectX::XM_PI);
                 tdx *= dxz;
                 tdz *= dxz;
 
-                const XMVECTOR normal = XMVectorSet(dx, dy, dz, 0);
-                const XMVECTOR tangent = XMVectorSet(tdx, 0, tdz, 0);
+                const DirectX::XMVECTOR normal = DirectX::XMVectorSet(dx, dy, dz, 0);
+                const DirectX::XMVECTOR tangent = DirectX::XMVectorSet(tdx, 0, tdz, 0);
 
                 const float u = (float)j / horizontalSegments;
-                const XMVECTOR textureCoordinate = XMVectorSet(u, v, 0, 0);
+                const DirectX::XMVECTOR textureCoordinate = DirectX::XMVectorSet(u, v, 0, 0);
 
                 Pbr::Vertex vert;
                 XMStoreFloat3(&vert.Position, normal * radius);
@@ -129,11 +136,11 @@ namespace Pbr {
 
     // Based on code from DirectXTK
     PrimitiveBuilder&
-    PrimitiveBuilder::AddCube(XMFLOAT3 sideLengths, CXMVECTOR translation, Pbr::NodeIndex_t transformIndex, RGBAColor vertexColor) {
+    PrimitiveBuilder::AddCube(DirectX::XMFLOAT3 sideLengths, DirectX::CXMVECTOR translation, Pbr::NodeIndex_t transformIndex, RGBAColor vertexColor) {
         // A box has six faces, each one pointing in a different direction.
         const int FaceCount = 6;
 
-        static const XMVECTORF32 faceNormals[FaceCount] = {
+        static const DirectX::XMVECTORF32 faceNormals[FaceCount] = {
             {{{0, 0, 1, 0}}},
             {{{0, 0, -1, 0}}},
             {{{1, 0, 0, 0}}},
@@ -142,7 +149,7 @@ namespace Pbr {
             {{{0, -1, 0, 0}}},
         };
 
-        static const XMVECTORF32 textureCoordinates[4] = {
+        static const DirectX::XMVECTORF32 textureCoordinates[4] = {
             {{{1, 0, 0, 0}}},
             {{{1, 1, 0, 0}}},
             {{{0, 1, 0, 0}}},
@@ -150,16 +157,16 @@ namespace Pbr {
         };
 
         // Create each face in turn.
-        const XMVECTORF32 sideLengthHalfVector = {{{sideLengths.x / 2, sideLengths.y / 2, sideLengths.z / 2}}};
+        const DirectX::XMVECTORF32 sideLengthHalfVector = {{{sideLengths.x / 2, sideLengths.y / 2, sideLengths.z / 2}}};
 
         for (int i = 0; i < FaceCount; i++) {
-            XMVECTOR normal = faceNormals[i];
+            DirectX::XMVECTOR normal = faceNormals[i];
 
             // Get two vectors perpendicular both to the face normal and to each other.
-            XMVECTOR basis = (i >= 4) ? g_XMIdentityR2 : g_XMIdentityR1;
+            DirectX::XMVECTOR basis = (i >= 4) ? DirectX::g_XMIdentityR2 : DirectX::g_XMIdentityR1;
 
-            XMVECTOR side1 = XMVector3Cross(normal, basis);
-            XMVECTOR side2 = XMVector3Cross(normal, side1);
+            DirectX::XMVECTOR side1 = DirectX::XMVector3Cross(normal, basis);
+            DirectX::XMVECTOR side2 = DirectX::XMVector3Cross(normal, side1);
 
             // Six indices (two triangles) per face.
             size_t vbase = Vertices.size();
@@ -170,8 +177,8 @@ namespace Pbr {
             Indices.push_back((uint32_t)vbase + 0);
             Indices.push_back((uint32_t)vbase + 2);
             Indices.push_back((uint32_t)vbase + 3);
-
-            const XMVECTOR positions[4] = {{(normal - side1 - side2) * sideLengthHalfVector},
+            //using namespace DirectX;
+            const DirectX::XMVECTOR positions[4] = {{(normal - side1 - side2) * sideLengthHalfVector},
                                            {(normal - side1 + side2) * sideLengthHalfVector},
                                            {(normal + side1 + side2) * sideLengthHalfVector},
                                            {(normal + side1 - side2) * sideLengthHalfVector}};
@@ -191,24 +198,24 @@ namespace Pbr {
         return *this;
     }
 
-    PrimitiveBuilder& PrimitiveBuilder::AddCube(XMFLOAT3 sideLengths, Pbr::NodeIndex_t transformIndex, RGBAColor vertexColor) {
-        return AddCube(sideLengths, g_XMZero, transformIndex, vertexColor);
+    PrimitiveBuilder& PrimitiveBuilder::AddCube(DirectX::XMFLOAT3 sideLengths, Pbr::NodeIndex_t transformIndex, RGBAColor vertexColor) {
+        return AddCube(sideLengths, DirectX::g_XMZero, transformIndex, vertexColor);
     }
 
     PrimitiveBuilder& PrimitiveBuilder::AddCube(float sideLength, Pbr::NodeIndex_t transformIndex, RGBAColor vertexColor) {
-        return AddCube(XMFLOAT3{sideLength, sideLength, sideLength}, transformIndex, vertexColor);
+        return AddCube(DirectX::XMFLOAT3{sideLength, sideLength, sideLength}, transformIndex, vertexColor);
     }
 
-    PrimitiveBuilder& PrimitiveBuilder::AddQuad(XMFLOAT2 sideLengths,
-                                                XMFLOAT2 textureCoord,
+    PrimitiveBuilder& PrimitiveBuilder::AddQuad(DirectX::XMFLOAT2 sideLengths,
+                                                DirectX::XMFLOAT2 textureCoord,
                                                 Pbr::NodeIndex_t transformIndex,
                                                 RGBAColor vertexColor) {
-        const XMFLOAT2 halfSideLength = {sideLengths.x / 2, sideLengths.y / 2};
-        const XMFLOAT3 vertices[4] = {{-halfSideLength.x, -halfSideLength.y, 0}, // LB
+        const DirectX::XMFLOAT2 halfSideLength = {sideLengths.x / 2, sideLengths.y / 2};
+        const DirectX::XMFLOAT3 vertices[4] = {{-halfSideLength.x, -halfSideLength.y, 0}, // LB
                                       {-halfSideLength.x, halfSideLength.y, 0},  // LT
                                       {halfSideLength.x, halfSideLength.y, 0},   // RT
                                       {halfSideLength.x, -halfSideLength.y, 0}}; // RB
-        const XMFLOAT2 uvs[4] = {
+        const DirectX::XMFLOAT2 uvs[4] = {
             {0, textureCoord.y},
             {0, 0},
             {textureCoord.x, 0},
@@ -239,13 +246,12 @@ namespace Pbr {
 
     namespace Texture {
         std::array<uint8_t, 4> LoadRGBAUI4(RGBAColor color) {
-            XMFLOAT4 colorf;
-            XMStoreFloat4(&colorf, XMVectorScale(XMLoadFloat4(&color), 255));
+            DirectX::XMFLOAT4 colorf;
+            DirectX::XMStoreFloat4(&colorf, DirectX::XMVectorScale(XMLoadFloat4(&color), 255));
             return std::array<uint8_t, 4>{(uint8_t)colorf.x, (uint8_t)colorf.y, (uint8_t)colorf.z, (uint8_t)colorf.w};
         }
 
-        winrt::com_ptr<ID3D11ShaderResourceView> LoadTextureImage(_In_ ID3D11Device* device,
-                                                                  _In_reads_bytes_(fileSize) const uint8_t* fileData,
+        winrt::com_ptr<bgfx::TextureHandle> LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData,
                                                                   uint32_t fileSize) {
             auto freeImageData = [](unsigned char* ptr) { ::free(ptr); };
             using stbi_unique_ptr = std::unique_ptr<unsigned char, decltype(freeImageData)>;
@@ -259,88 +265,51 @@ namespace Pbr {
                 throw std::exception("Failed to load image file data.");
             }
 
-            return CreateTexture(device, rgbaData.get(), w * h * DesiredComponentCount, w, h, DXGI_FORMAT_R8G8B8A8_UNORM);
+            return CreateTexture(device,
+                                 rgbaData.get(),
+                                 w * h * DesiredComponentCount,
+                                 w,
+                                 h,
+                                 sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
         }
 
-        winrt::com_ptr<ID3D11ShaderResourceView> CreateFlatCubeTexture(_In_ ID3D11Device* device, RGBAColor color, DXGI_FORMAT format) {
-            D3D11_TEXTURE2D_DESC desc{};
-            desc.Width = 1;
-            desc.Height = 1;
-            desc.MipLevels = 1;
-            desc.ArraySize = 6;
-            desc.Format = format;
-            desc.SampleDesc.Count = 1;
-            desc.SampleDesc.Quality = 0;
-            desc.Usage = D3D11_USAGE_DEFAULT;
-            desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-            desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-
+        winrt::com_ptr<ID3D11ShaderResourceView> CreateFlatCubeTexture(RGBAColor color,
+                                                                       bgfx::TextureFormat::Enum format) {
+            
+            
             // Each side is a 1x1 pixel (RGBA) image.
             const std::array<uint8_t, 4> rgbaColor = LoadRGBAUI4(color);
-            D3D11_SUBRESOURCE_DATA initData[6];
-            for (int i = 0; i < _countof(initData); i++) {
-                initData[i].pSysMem = rgbaColor.data();
-                initData[i].SysMemPitch = initData[i].SysMemSlicePitch = 4;
-            }
-
-            winrt::com_ptr<ID3D11Texture2D> cubeTexture;
-            Internal::ThrowIfFailed(device->CreateTexture2D(&desc, initData, cubeTexture.put()));
-
-            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-            srvDesc.Format = desc.Format;
-            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-            srvDesc.Texture2D.MipLevels = desc.MipLevels;
-            srvDesc.Texture2D.MostDetailedMip = 0;
-
-            winrt::com_ptr<ID3D11ShaderResourceView> textureView;
-            Internal::ThrowIfFailed(device->CreateShaderResourceView(cubeTexture.get(), &srvDesc, textureView.put()));
-
+            winrt::com_ptr<bgfx::TextureHandle> textureView(
+                bgfx::createTextureCube(1 /*_size*/,
+                                        true /*bool _hasMips*/,
+                                        6 /*_numLayers*/,
+                                        format,
+                                        uint64_t _flags = BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE | BGFX_CAPS_TEXTURE_CUBE_ARRAY,
+                                        &rgbaColor /*constMemory* _mem = NULL*/));
             return textureView;
         }
 
-        winrt::com_ptr<ID3D11ShaderResourceView> CreateTexture(_In_ ID3D11Device* device,
-                                                               _In_reads_bytes_(size) const uint8_t* rgba,
+        winrt::com_ptr<bgfx::TextureHandle> CreateTexture(_In_reads_bytes_(size) const uint8_t* rgba,
                                                                uint32_t size,
                                                                int width,
                                                                int height,
-                                                               DXGI_FORMAT format) {
-            D3D11_TEXTURE2D_DESC desc{};
-            desc.Width = width;
-            desc.Height = height;
-            desc.MipLevels = 1;
-            desc.ArraySize = 1;
-            desc.Format = format;
-            desc.SampleDesc.Count = 1;
-            desc.SampleDesc.Quality = 0;
-            desc.Usage = D3D11_USAGE_DEFAULT;
-            desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-            D3D11_SUBRESOURCE_DATA initData{};
-            initData.pSysMem = rgba;
-            initData.SysMemPitch = size / height;
-            initData.SysMemSlicePitch = size;
-
-            winrt::com_ptr<ID3D11Texture2D> texture2D;
-            Internal::ThrowIfFailed(device->CreateTexture2D(&desc, &initData, texture2D.put()));
-
-            D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-            srvDesc.Format = desc.Format;
-            srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-            srvDesc.Texture2D.MipLevels = desc.MipLevels;
-            srvDesc.Texture2D.MostDetailedMip = desc.MipLevels - 1;
-
-            winrt::com_ptr<ID3D11ShaderResourceView> textureView;
-            Internal::ThrowIfFailed(device->CreateShaderResourceView(texture2D.get(), &srvDesc, textureView.put()));
-
+                                                               bgfx::TextureFormat::Enum format) {
+            winrt::com_ptr<bgfx::TextureHandle> textureView;
+            textureView.copy_from(bgfx::createTexture2D(width,
+                                  height,
+                                  true/*_hasMips*/,
+                                  1 /*_numLayers*/,
+                                  format /*TextureFormat::Enum_format*/,
+                                  uint64_t _flags = BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE,
+                                  rgba /*constMemory* _mem = NULL*/));
             return textureView;
         }
-
-        winrt::com_ptr<ID3D11SamplerState> CreateSampler(_In_ ID3D11Device* device, D3D11_TEXTURE_ADDRESS_MODE addressMode) {
-            CD3D11_SAMPLER_DESC samplerDesc(CD3D11_DEFAULT{});
-            samplerDesc.AddressU = samplerDesc.AddressV = samplerDesc.AddressW = addressMode;
-
-            winrt::com_ptr<ID3D11SamplerState> samplerState;
-            Pbr::Internal::ThrowIfFailed(device->CreateSamplerState(&samplerDesc, samplerState.put()));
+        
+        //from what I can tell this is handled internally in bgfx, but I could be wrong
+        winrt::com_ptr<bgfx::UniformHandle> CreateSampler(const char* _uniqueName) {
+            bgfx::UniformHandle sampler = bgfx::createUniform(_uniqueName, bgfx::UniformType::Sampler);
+            winrt::com_ptr<bgfx::UniformHandle> samplerState;
+            samplerState.copy_from(sampler);
             return samplerState;
         }
     } // namespace Texture

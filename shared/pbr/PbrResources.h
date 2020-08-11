@@ -61,17 +61,17 @@ namespace Pbr {
 
     // Global PBR resources required for rendering a scene.
     struct Resources final {
-        explicit Resources(_In_ ID3D11Device* d3dDevice);
+        explicit Resources();
         Resources(Resources&&);
 
         ~Resources();
 
         // Sets the Bidirectional Reflectance Distribution Function Lookup Table texture, required by the shader to compute surface
         // reflectance from the IBL.
-        void SetBrdfLut(_In_ ID3D11ShaderResourceView* brdfLut);
+        void SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut);
 
         // Create device-dependent resources.
-        void CreateDeviceDependentResources(_In_ ID3D11Device* device);
+        void CreateDeviceDependentResources();
 
         // Release device-dependent resources.
         void ReleaseDeviceDependentResources();

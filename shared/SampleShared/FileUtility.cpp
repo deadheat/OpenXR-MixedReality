@@ -100,8 +100,8 @@ namespace sample {
 
         // Read the BRDF Lookup Table used by the PBR system into a DirectX texture.
         std::vector<byte> brdfLutFileData = ReadFileBytes(FindFileInAppFolder(L"brdf_lut.png", {"", L"Pbr_uwp"}));
-        winrt::com_ptr<ID3D11ShaderResourceView> brdLutResourceView =
-            Pbr::Texture::LoadTextureImage(device, brdfLutFileData.data(), (uint32_t)brdfLutFileData.size());
+        winrt::com_ptr<bgfx::TextureHandle> brdLutResourceView =
+            Pbr::Texture::LoadTextureImage(brdfLutFileData.data(), (uint32_t)brdfLutFileData.size());
         pbrResources.SetBrdfLut(brdLutResourceView.get());
 
         winrt::com_ptr<ID3D11ShaderResourceView> diffuseTextureView;
@@ -117,8 +117,8 @@ namespace sample {
                                                           nullptr,
                                                           specularTextureView.put()));
         } else {
-            diffuseTextureView = Pbr::Texture::CreateFlatCubeTexture(device, Pbr::RGBA::White);
-            specularTextureView = Pbr::Texture::CreateFlatCubeTexture(device, Pbr::RGBA::White);
+            diffuseTextureView = Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White);
+            specularTextureView = Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White);
         }
 
         pbrResources.SetEnvironmentMap(specularTextureView.get(), diffuseTextureView.get());

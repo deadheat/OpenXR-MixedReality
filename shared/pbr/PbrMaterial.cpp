@@ -10,8 +10,10 @@ using namespace DirectX;
 
 namespace Pbr {
     Material::Material(Pbr::Resources const& pbrResources) {
-        const CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ConstantBufferData), D3D11_BIND_CONSTANT_BUFFER);
-        Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_constantBuffer.put()));
+        //const CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ConstantBufferData), D3D11_BIND_CONSTANT_BUFFER);
+
+        //Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_constantBuffer.put()));
+        m_constantBuffer = bgfx::createUniform("ConstantBufferData", bgfx::UniformType::Count, sizeof(ConstantBufferData)) 
     }
 
     std::shared_ptr<Material> Material::Clone(Pbr::Resources const& pbrResources) const {
@@ -44,7 +46,7 @@ namespace Pbr {
         parameters.MetallicFactor = metallicFactor;
         parameters.RoughnessFactor = roughnessFactor;
 
-        const winrt::com_ptr<ID3D11SamplerState> defaultSampler = Pbr::Texture::CreateSampler(pbrResources.GetDevice().get());
+        const winrt::com_ptr <bgfx::UniformHandle> defaultSampler = Pbr::Texture::CreateSampler("defaultSampler");
         material->SetTexture(ShaderSlots::BaseColor, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
         material->SetTexture(ShaderSlots::MetallicRoughness, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
         // No occlusion.
@@ -57,8 +59,8 @@ namespace Pbr {
     }
 
     void Material::SetTexture(ShaderSlots::PSMaterial slot,
-                              _In_ ID3D11ShaderResourceView* textureView,
-                              _In_opt_ ID3D11SamplerState* sampler) {
+                              _In_ bgfx::TextureHandle* textureView,
+                              _In_opt_ bgfx::UniformHandle* sampler) {
         m_textures[slot].copy_from(textureView);
 
         if (sampler) {
@@ -78,29 +80,31 @@ namespace Pbr {
         m_alphaBlended = alphaBlended;
     }
 
-    void Material::Bind(_In_ ID3D11DeviceContext* context, const Resources& pbrResources) const {
+    void Material::Bind(const Resources& pbrResources) const {
         // If the parameters of the constant buffer have changed, update the constant buffer.
         if (m_parametersChanged) {
             m_parametersChanged = false;
-            context->UpdateSubresource(m_constantBuffer.get(), 0, nullptr, &m_parameters, 0, 0);
+            setUniform(m_constantBuffer.get(), &m_parameters, sizeof(m_parameters));
+            //context->UpdateSubresource(m_constantBuffer.get(), 0, nullptr, &m_parameters, 0, 0);
         }
 
-        pbrResources.SetBlendState(context, m_alphaBlended);
-        pbrResources.SetDepthStencilState(context, m_alphaBlended);
-        pbrResources.SetRasterizerState(context, m_doubleSided, m_wireframe);
+        pbrResources.SetBlendState(m_alphaBlended);
+        pbrResources.SetDepthStencilState(m_alphaBlended);
+        pbrResources.SetRasterizerState(m_doubleSided, m_wireframe);
 
-        ID3D11Buffer* psConstantBuffers[] = {m_constantBuffer.get()};
-        context->PSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Material, 1, psConstantBuffers);
+        setUniform(m_constantBuffer.get(), &m_parameters, sizeof(m_parameters));
+        //context->PSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Material, 1, psConstantBuffers);
+        //static_assert(Pbr::ShaderSlots::BaseColor == 0, "BaseColor must be the first slot");
 
-        static_assert(Pbr::ShaderSlots::BaseColor == 0, "BaseColor must be the first slot");
-
-        std::array<ID3D11ShaderResourceView*, TextureCount> textures;
+        std::array < bgfx::TextureHandle*, TextureCount > textures;
         std::transform(m_textures.begin(), m_textures.end(), textures.begin(), [](const auto& texture) { return texture.get(); });
-        context->PSSetShaderResources(Pbr::ShaderSlots::BaseColor, (UINT)textures.size(), textures.data());
+        setUniform(textures[0], textures.data(), (UINT)textures.size());
+        //context->PSSetShaderResources(Pbr::ShaderSlots::BaseColor, (UINT)textures.size(), textures.data()  );
 
-        std::array<ID3D11SamplerState*, TextureCount> samplers;
+        std::array<bgfx::UniformHandle*, TextureCount> samplers;
         std::transform(m_samplers.begin(), m_samplers.end(), samplers.begin(), [](const auto& sampler) { return sampler.get(); });
-        context->PSSetSamplers(Pbr::ShaderSlots::BaseColor, (UINT)samplers.size(), samplers.data());
+        setUniform(samplers[0], samplers.data(), (UINT)samplers.size());
+        //context->PSSetSamplers(Pbr::ShaderSlots::BaseColor, (UINT)samplers.size(), samplers.data());
     }
 
     Material::ConstantBufferData& Material::Parameters() {

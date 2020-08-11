@@ -11,45 +11,62 @@
 #include <HighlightPixelShader.h>
 #include <HighlightVertexShader.h>
 
+#include <bx/platform.h>
+#include <bx/math.h>
+#include <bx/pixelformat.h>
+
+#include <bgfx/platform.h>
+#include <bgfx/embedded_shader.h>
+
 using namespace DirectX;
 
 namespace {
-    struct SceneConstantBuffer {
-        alignas(16) DirectX::XMFLOAT4X4 ViewProjection;
-        alignas(16) DirectX::XMFLOAT4 EyePosition;
-        alignas(16) DirectX::XMFLOAT3 LightDirection{};
-        alignas(16) DirectX::XMFLOAT3 LightDiffuseColor{};
-        alignas(16) int NumSpecularMipLevels{1};
-        alignas(16) DirectX::XMFLOAT3 HighlightPosition{};
-        alignas(16) float AnimationTime{0};
+    struct SceneUniforms {
+        bgfx::UniformHandle ViewProjection;
+        bgfx::UniformHandle EyePosition;
+        bgfx::UniformHandle LightDirection{};
+        bgfx::UniformHandle LightDiffuseColor{};
+        bgfx::UniformHandle NumSpecularMipLevels{1};
+        bgfx::UniformHandle HighlightPosition{};
+        bgfx::UniformHandle AnimationTime{0};
     };
 
     struct ModelConstantBuffer {
         alignas(16) DirectX::XMFLOAT4X4 ModelToWorld;
     };
 } // namespace
-
+const bgfx::EmbeddedShader s_embeddedShaders[] = {BGFX_EMBEDDED_SHADER(g_PbrPixelShader),
+                                                  BGFX_EMBEDDED_SHADER(g_HighlightPixelShader),
+                                                  BGFX_EMBEDDED_SHADER(g_PbrVertexShader),
+                                                  BGFX_EMBEDDED_SHADER(g_HighlightVertexShader),
+                                                  BGFX_EMBEDDED_SHADER_END()};
 namespace Pbr {
     struct Resources::Impl {
-        void Initialize(_In_ ID3D11Device* device) {
-            Internal::ThrowIfFailed(device->CreateInputLayout(Pbr::Vertex::s_vertexDesc,
-                                                              ARRAYSIZE(Pbr::Vertex::s_vertexDesc),
-                                                              g_PbrVertexShader,
-                                                              sizeof(g_PbrVertexShader),
-                                                              Resources.InputLayout.put()));
+        void Initialize() {
+            //Internal::ThrowIfFailed(device->CreateInputLayout(Pbr::Vertex::s_vertexDesc,
+            //                                                  ARRAYSIZE(Pbr::Vertex::s_vertexDesc),
+            //                                                  g_PbrVertexShader,
+            //                                                  sizeof(g_PbrVertexShader),
+            //                                                  Resources.InputLayout.put()));
 
             // Set up pixel shader.
-            Internal::ThrowIfFailed(
-                device->CreatePixelShader(g_PbrPixelShader, sizeof(g_PbrPixelShader), nullptr, Resources.PbrPixelShader.put()));
-            Internal::ThrowIfFailed(device->CreatePixelShader(
-                g_HighlightPixelShader, sizeof(g_HighlightPixelShader), nullptr, Resources.HighlightPixelShader.put()));
+            bgfx::RendererType::Enum type = bgfx::RendererType::Direct3D11;
+            Resources.PbrPixelShader.copy_from(
+                bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrPixelShader"));
+            
+            Resources.HighlightPixelShader.copy_from(
+                bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightPixelShader"));
 
-            Internal::ThrowIfFailed(
-                device->CreateVertexShader(g_PbrVertexShader, sizeof(g_PbrVertexShader), nullptr, Resources.PbrVertexShader.put()));
-            Internal::ThrowIfFailed(device->CreateVertexShader(
-                g_HighlightVertexShader, sizeof(g_HighlightVertexShader), nullptr, Resources.HighlightVertexShader.put()));
+            Resources.PbrVertexShader.copy_from(
+                bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrVertexShader"));
 
-            // Set up the constant buffers.
+            Resources.PbrVertexShader.copy_from(
+                bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightVertexShader"));
+
+ 
+            // Seyi NOTE: since there are no constant buffers in bgfx, will find some type of way to implement without
+
+            Set up the constant buffers.
             static_assert((sizeof(SceneConstantBuffer) % 16) == 0, "Constant Buffer must be divisible by 16 bytes");
             const CD3D11_BUFFER_DESC pbrConstantBufferDesc(sizeof(SceneConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
             Internal::ThrowIfFailed(device->CreateBuffer(&pbrConstantBufferDesc, nullptr, Resources.SceneConstantBuffer.put()));
@@ -58,36 +75,49 @@ namespace Pbr {
             const CD3D11_BUFFER_DESC modelConstantBufferDesc(sizeof(ModelConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
             Internal::ThrowIfFailed(device->CreateBuffer(&modelConstantBufferDesc, nullptr, Resources.ModelConstantBuffer.put()));
 
+            //ID3D11Device* device = (ID3D11Device*)bgfx::getInternalData()->context;
             // Samplers for environment map and BRDF.
-            Resources.EnvironmentMapSampler = Texture::CreateSampler(device);
-            Resources.BrdfSampler = Texture::CreateSampler(device);
+            Resources.EnvironmentMapSampler = Texture::CreateSampler("EnvironmentMapSampler");
+            Resources.BrdfSampler = Texture::CreateSampler("BrdfSampler");
 
-            CD3D11_BLEND_DESC blendStateDesc(D3D11_DEFAULT);
-            Internal::ThrowIfFailed(device->CreateBlendState(&blendStateDesc, Resources.DefaultBlendState.put()));
+            Resources.DefaultBlendState.copy_from(BGFX_STATE_DEFAULT);
+            // CD3D11_BLEND_DESC blendStateDesc(D3D11_DEFAULT);
+            // Internal::ThrowIfFailed(device->CreateBlendState(&blendStateDesc, Resources.DefaultBlendState.put()));
 
-            D3D11_RENDER_TARGET_BLEND_DESC rtBlendDesc;
-            rtBlendDesc.BlendEnable = TRUE;
-            rtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-            rtBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-            rtBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
-            rtBlendDesc.SrcBlendAlpha = D3D11_BLEND_ZERO;
-            rtBlendDesc.DestBlendAlpha = D3D11_BLEND_ONE;
-            rtBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-            rtBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-            for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i) {
-                blendStateDesc.RenderTarget[i] = rtBlendDesc;
-            }
-            Internal::ThrowIfFailed(device->CreateBlendState(&blendStateDesc, Resources.AlphaBlendState.put()));
+            uint64_t rtBlendMode =
+                BGFX_STATE_DEFAULT |
+                BGFX_STATE_BLEND_EQUATION_ADD |
+                BGFX_STATE_BLEND_FUNC_SEPARATE(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA,BGFX_STATE_BLEND_ZERO,BGFX_STATE_BLEND_ONE) |
+                BGFX_STATE_WRITE_RGB | 
+                BGFX_STATE_WRITE_A;
+            Resources.AlphaBlendState.copy_from(rtBlendMode);
+            // D3D11_RENDER_TARGET_BLEND_DESC rtBlendDesc;
+            // rtBlendDesc.BlendEnable = TRUE;
+            // rtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+            // rtBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+            // rtBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+            // rtBlendDesc.SrcBlendAlpha = D3D11_BLEND_ZERO;
+            // rtBlendDesc.DestBlendAlpha = D3D11_BLEND_ONE;
+            // rtBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+            // rtBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+            // for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i) {
+            //    blendStateDesc.RenderTarget[i] = rtBlendDesc;
+            //}
+            //Internal::ThrowIfFailed(device->CreateBlendState(&blendStateDesc, Resources.AlphaBlendState.put()));
 
             for (bool doubleSided : {false, true}) {
                 for (bool wireframe : {false, true}) {
                     for (bool frontCounterClockwise : {false, true}) {
-                        CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
-                        rasterizerDesc.CullMode = doubleSided ? D3D11_CULL_NONE : D3D11_CULL_BACK;
-                        rasterizerDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-                        rasterizerDesc.FrontCounterClockwise = frontCounterClockwise;
-                        Internal::ThrowIfFailed(device->CreateRasterizerState(
-                            &rasterizerDesc, Resources.RasterizerStates[doubleSided][wireframe][frontCounterClockwise].put()));
+                        //Seyi NOTE: Wireframe is set in debugging in bgfx and not rasterizer so find a way to implement
+                        uint64_t rastState = BGFX_STATE_DEFAULT;
+                        rastState = doubleSided ? rastState : rastState | BGFX_STATE_CULL_CCW;
+                        Resources.RasterizerStates[doubleSided][wireframe][frontCounterClockwise].copy_from(rastState);
+                        //CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
+                        //rasterizerDesc.CullMode = doubleSided ? D3D11_CULL_NONE : D3D11_CULL_BACK;
+                        //rasterizerDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+                        //rasterizerDesc.FrontCounterClockwise = frontCounterClockwise;
+                        //Internal::ThrowIfFailed(device->CreateRasterizerState(
+                        //    &rasterizerDesc, Resources.RasterizerStates[doubleSided][wireframe][frontCounterClockwise].put()));
                     }
                 }
             }
@@ -104,21 +134,21 @@ namespace Pbr {
         }
 
         struct DeviceResources {
-            winrt::com_ptr<ID3D11SamplerState> BrdfSampler;
-            winrt::com_ptr<ID3D11SamplerState> EnvironmentMapSampler;
+            winrt::com_ptr<bgfx::UniformHandle> BrdfSampler;
+            winrt::com_ptr<bgfx::UniformHandle> EnvironmentMapSampler;
             winrt::com_ptr<ID3D11InputLayout> InputLayout;
-            winrt::com_ptr<ID3D11VertexShader> PbrVertexShader;
-            winrt::com_ptr<ID3D11PixelShader> PbrPixelShader;
-            winrt::com_ptr<ID3D11VertexShader> HighlightVertexShader;
-            winrt::com_ptr<ID3D11PixelShader> HighlightPixelShader;
+            winrt::com_ptr<bgfx::EmbeddedShader> PbrVertexShader;
+            winrt::com_ptr<bgfx::EmbeddedShader> PbrPixelShader;
+            winrt::com_ptr<bgfx::EmbeddedShader> HighlightVertexShader;
+            winrt::com_ptr<bgfx::EmbeddedShader> HighlightPixelShader;
             winrt::com_ptr<ID3D11Buffer> SceneConstantBuffer;
             winrt::com_ptr<ID3D11Buffer> ModelConstantBuffer;
             winrt::com_ptr<ID3D11ShaderResourceView> BrdfLut;
             winrt::com_ptr<ID3D11ShaderResourceView> SpecularEnvironmentMap;
             winrt::com_ptr<ID3D11ShaderResourceView> DiffuseEnvironmentMap;
-            winrt::com_ptr<ID3D11BlendState> AlphaBlendState;
-            winrt::com_ptr<ID3D11BlendState> DefaultBlendState;
-            winrt::com_ptr<ID3D11RasterizerState>
+            winrt::com_ptr<uint64_t> AlphaBlendState;
+            winrt::com_ptr<uint64_t> DefaultBlendState;
+            winrt::com_ptr<uint64_t>
                 RasterizerStates[2][2][2]; // Three dimensions for [DoubleSide][Wireframe][FrontCounterClockWise]
             winrt::com_ptr<ID3D11DepthStencilState> DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
             mutable std::map<uint32_t, winrt::com_ptr<ID3D11ShaderResourceView>> SolidColorTextureCache;
@@ -138,21 +168,21 @@ namespace Pbr {
         mutable std::mutex m_cacheMutex;
     };
 
-    Resources::Resources(_In_ ID3D11Device* device)
+    Resources::Resources()
         : m_impl(std::make_unique<Impl>()) {
-        m_impl->Initialize(device);
+        m_impl->Initialize();
     }
 
     Resources::Resources(Resources&& resources) = default;
 
     Resources::~Resources() = default;
 
-    void Resources::SetBrdfLut(_In_ ID3D11ShaderResourceView* brdfLut) {
+    void Resources::SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut) {
         m_impl->Resources.BrdfLut.copy_from(brdfLut);
     }
 
-    void Resources::CreateDeviceDependentResources(_In_ ID3D11Device* device) {
-        m_impl->Initialize(device);
+    void Resources::CreateDeviceDependentResources() {
+        m_impl->Initialize();
     }
 
     void Resources::ReleaseDeviceDependentResources() {
@@ -223,7 +253,7 @@ namespace Pbr {
         }
 
         winrt::com_ptr<ID3D11ShaderResourceView> texture =
-            Pbr::Texture::CreateTexture(GetDevice().get(), rgba.data(), 1, 1, 1, DXGI_FORMAT_R8G8B8A8_UNORM);
+            Pbr::Texture::CreateTexture(rgba.data(), 1, 1, 1, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
         std::lock_guard guard(m_impl->m_cacheMutex);
         // If the key already exists then the existing texture will be returned.
         return m_impl->Resources.SolidColorTextureCache.emplace(colorKey, texture).first->second;
@@ -241,6 +271,15 @@ namespace Pbr {
         }
 
         ID3D11Buffer* vsBuffers[] = {m_impl->Resources.SceneConstantBuffer.get(), m_impl->Resources.ModelConstantBuffer.get()};
+        m_impl->Resources.SceneUniforms.r_viewProjections = bgfx::createUniform("r_viewProjections", bgfx::UniformType::Vec4, 4);
+        alignas(16) DirectX::XMFLOAT4X4 ViewProjection;
+        alignas(16) DirectX::XMFLOAT4 EyePosition;
+        alignas(16) DirectX::XMFLOAT3 LightDirection{};
+        alignas(16) DirectX::XMFLOAT3 LightDiffuseColor{};
+        alignas(16) int NumSpecularMipLevels{1};
+        alignas(16) DirectX::XMFLOAT3 HighlightPosition{};
+        alignas(16) float AnimationTime{0};
+
         context->VSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(vsBuffers), vsBuffers);
         ID3D11Buffer* psBuffers[] = {m_impl->Resources.SceneConstantBuffer.get()};
         context->PSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(psBuffers), psBuffers);

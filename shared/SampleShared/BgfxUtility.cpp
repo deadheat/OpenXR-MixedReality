@@ -21,17 +21,84 @@
 
 #include <DirectXMath.h>
 
-#include <bgfx/bgfx.h>
 
-#include <bgfx/platform.h>
 
-#include <bx/uint32_t.h>
+template <typename HandleType>
+class UniqueBgfxHandle {
+public:
+    UniqueBgfxHandle() = default;
+    explicit UniqueBgfxHandle(HandleType handle)
+        : m_handle(handle) {
+    }
+    //UniqueBgfxHandle(const UniqueBgfxHandle&) = delete;
+    UniqueBgfxHandle(UniqueBgfxHandle&& other) noexcept {
+        *this = std::move(other);
+    }
 
+    ~UniqueBgfxHandle() noexcept {
+        Reset();
+    }
+
+    //UniqueBgfxHandle& operator=(const UniqueBgfxHandle&) = delete;
+    UniqueBgfxHandle& operator=(UniqueBgfxHandle&& other) noexcept {
+        if (m_handle.idx != other.m_handle.idx) {
+            Reset();
+
+            m_handle = other.m_handle;
+            other.m_handle = {bgfx::kInvalidHandle};
+        }
+        return *this;
+    }
+
+    HandleType Get() const noexcept {
+        return m_handle;
+    }
+
+    HandleType* Put() noexcept {
+        Reset();
+        return &m_handle;
+    }
+
+    void Reset() noexcept {
+        if (bgfx::isValid(m_handle)) {
+            bgfx::destroy(m_handle);
+            m_handle = {bgfx::kInvalidHandle};
+        }
+    }
+
+private:
+    HandleType m_handle{bgfx::kInvalidHandle};
+};
 namespace sample::bg {
     enum class RendererType {
         D3D11,
         D3D12,
     };
+    bgfx::TextureFormat::Enum DxgiFormatToBgfxFormat(DXGI_FORMAT format) {
+        switch (format) {
+            // Color Formats
+        case DXGI_FORMAT_B8G8R8A8_UNORM:
+        case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+            return bgfx::TextureFormat::BGRA8;
+
+        case DXGI_FORMAT_R8G8B8A8_UNORM:
+        case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+            return bgfx::TextureFormat::RGBA8;
+
+            // Depth Formats
+        case DXGI_FORMAT_D16_UNORM:
+            return bgfx::TextureFormat::D16;
+
+        case DXGI_FORMAT_D24_UNORM_S8_UINT:
+            return bgfx::TextureFormat::D24S8;
+
+        case DXGI_FORMAT_D32_FLOAT:
+            return bgfx::TextureFormat::D32F;
+
+        default:
+            throw std::exception{/* Unsupported texture format */};
+        }
+    }
 
     winrt::com_ptr<IDXGIAdapter1> GetAdapter(LUID adapterId) {
         // Create the DXGI factory.

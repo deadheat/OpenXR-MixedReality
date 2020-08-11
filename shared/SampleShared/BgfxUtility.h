@@ -19,9 +19,42 @@
 #include <d3dcommon.h>  //ID3DBlob
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrExtensionContext.h>
+#include <bgfx/bgfx.h>
+
+#include <bgfx/platform.h>
+
+#include <bx/uint32_t.h>
+
+
+template <typename HandleType>
+class UniqueBgfxHandle {
+public:
+    UniqueBgfxHandle() = default;
+    explicit UniqueBgfxHandle(HandleType handle)
+        : m_handle(handle) {
+    }
+    //UniqueBgfxHandle(const UniqueBgfxHandle&) = delete;
+    UniqueBgfxHandle(UniqueBgfxHandle&& other) noexcept;
+
+    ~UniqueBgfxHandle() noexcept {
+        Reset();
+    }
+
+    //UniqueBgfxHandle& operator=(const UniqueBgfxHandle&) = delete;
+    UniqueBgfxHandle& operator=(UniqueBgfxHandle&& other) noexcept;
+
+    HandleType Get() const noexcept;
+
+    HandleType* Put() noexcept;
+
+    void Reset() noexcept;
+
+private:
+    HandleType m_handle{bgfx::kInvalidHandle};
+};
 
 namespace sample::bg {
-    
+    bgfx::TextureFormat::Enum DxgiFormatToBgfxFormat(DXGI_FORMAT format);
     winrt::com_ptr<IDXGIAdapter1> GetAdapter(LUID adapterId);
 
     std::tuple<XrGraphicsBindingD3D11KHR, winrt::com_ptr<ID3D11Device>, winrt::com_ptr<ID3D11DeviceContext>>

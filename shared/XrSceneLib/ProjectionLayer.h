@@ -19,7 +19,7 @@
 #include <XrUtility/XrStereoView.h>
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrMath.h>
-#include <SampleShared/DxUtility.h>
+#include <SampleShared/BgfxUtility.h>
 #include "SceneContext.h"
 #include "FrameTime.h"
 
@@ -89,8 +89,8 @@ private:
         XrRect2Di LayerColorImageRect[xr::StereoView::Count];
         XrRect2Di LayerDepthImageRect[xr::StereoView::Count];
 
-        sample::dx::SwapchainD3D11 ColorSwapchain;
-        sample::dx::SwapchainD3D11 DepthSwapchain;
+        sample::bg::SwapchainD3D11 ColorSwapchain;
+        sample::bg::SwapchainD3D11 DepthSwapchain;
     };
     std::unordered_map<XrViewConfigurationType, ViewConfigComponent> m_viewConfigComponents;
     XrViewConfigurationType m_defaultViewConfigurationType;

@@ -8,12 +8,12 @@
 #include <tiny_gltf.h>
 #include "..\Gltf\GltfHelper.h"
 #include "GltfLoader.h"
-
+#include "SampleShared/BgfxUtility.h"
 using namespace DirectX;
 
 namespace {
     // Create a DirectX texture view from a tinygltf Image.
-    winrt::com_ptr<ID3D11ShaderResourceView> LoadImage(_In_ ID3D11Device* device, const tinygltf::Image& image, bool sRGB) {
+    winrt::com_ptr<bgfx::TextureHandle> LoadImage(_In_ ID3D11Device* device, const tinygltf::Image& image, bool sRGB) {
         // First convert the image to RGBA if it isn't already.
         std::vector<uint8_t> tempBuffer;
         const uint8_t* rgbaBuffer = GltfHelper::ReadImageAsRGBA(image, &tempBuffer);
@@ -22,7 +22,8 @@ namespace {
         }
 
         const DXGI_FORMAT format = sRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
-        return Pbr::Texture::CreateTexture(device, rgbaBuffer, image.width * image.height * 4, image.width, image.height, format);
+        return Pbr::Texture::CreateTexture(
+            device, rgbaBuffer, image.width * image.height * 4, image.width, image.height, sample::bg::DxgiFormatToBgfxFormat(format));
     }
 
     D3D11_FILTER ConvertFilter(int glMinFilter, int glMagFilter) {

@@ -46,6 +46,10 @@ namespace Pbr {
         uint32_t m_modifyCount{0};
         DirectX::XMFLOAT4X4 m_localTransform;
     };
+    struct CachedFrameBuffer {
+        std::vector<UniqueBgfxHandle<bgfx::FrameBufferHandle>> FrameBuffers;
+    };
+
 
     // A model is a collection of primitives (which reference a material) and transforms referenced by the primitives' vertices.
     struct Model final {
@@ -111,8 +115,8 @@ namespace Pbr {
         // Temporary buffer holds the world transforms, computed from the node's local transforms.
         mutable std::vector<DirectX::XMFLOAT4X4> m_modelTransforms;
         mutable winrt::com_ptr<ID3D11Buffer> m_modelTransformsStructuredBuffer;
-        mutable winrt::com_ptr<ID3D11ShaderResourceView> m_modelTransformsResourceView;
-
+        mutable winrt::com_ptr<bgfx::TextureHandle> m_modelTransformsResourceView;
+        std::map<std::tuple<void*, void*>, CachedFrameBuffer> m_cachedFrameBuffers;
         mutable uint32_t TotalModifyCount{0};
     };
 } // namespace Pbr

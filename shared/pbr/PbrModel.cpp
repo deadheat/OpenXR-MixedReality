@@ -4,6 +4,14 @@
 #include "pch.h"
 #include "PbrCommon.h"
 #include "PbrModel.h"
+#include "SampleShared/BgfxUtility.h"
+
+#include <bx/platform.h>
+#include <bx/math.h>
+#include <bx/pixelformat.h>
+
+#include <bgfx/platform.h>
+#include <bgfx/embedded_shader.h>
 
 using namespace DirectX;
 
@@ -24,12 +32,25 @@ namespace Pbr
         }
     }
 
-    void Model::Render(Pbr::Resources const& pbrResources, _In_ ID3D11DeviceContext* context) const
+    void Model::Render(Pbr::Resources const& pbrResources,
+                       _In_ ID3D11DeviceContext* context,
+                       const XrRect2Di& imageRect,
+                       const float renderTargetClearColor[4],
+                       const std::vector<xr::math::ViewProjection>& viewProjections,
+                       DXGI_FORMAT colorSwapchainFormat,
+                       void* colorTexture,
+                       DXGI_FORMAT depthSwapchainFormat,
+                       void* depthTexture) const
     {
         UpdateTransforms(pbrResources, context);
-
-        ID3D11ShaderResourceView* vsShaderResources[] = { m_modelTransformsResourceView.get() };
-        context->VSSetShaderResources(Pbr::ShaderSlots::Transforms, _countof(vsShaderResources), vsShaderResources);
+        // seems like the m_modelTransformsResourceView is always null
+        bgfx::TextureHandle* vsShaderResources[] = { m_modelTransformsResourceView.get() };
+        // NOTE: this probably wont work, I gotta figure out how to use the setTexture API
+        bgfx::UniformHandle s_texColor;
+        for (int t = 0; t < _countof(vsShaderResources); t++) {
+            bgfx::setTexture(0, s_texColor, vsShaderResources[t])
+        }
+        //context->VSSetShaderResources(Pbr::ShaderSlots::Transforms, _countof(vsShaderResources), vsShaderResources);
 
         for (const Pbr::Primitive& primitive : m_primitives)
         {
@@ -107,6 +128,42 @@ namespace Pbr
 
     void Model::UpdateTransforms(Pbr::Resources const& pbrResources, _In_ ID3D11DeviceContext* context) const
     {
+        const bool reversedZ = viewProjections[0].NearFar.Near > viewProjections[0].NearFar.Far;
+        const float depthClearValue = reversedZ ? 0.f : 1.f;
+        const uint64_t state =
+            BGFX_STATE_WRITE_MASK | (reversedZ ? BGFX_STATE_DEPTH_TEST_GREATER : BGFX_STATE_DEPTH_TEST_LESS) | BGFX_STATE_CULL_CCW;
+
+        auto iter = m_cachedFrameBuffers.find({colorTexture, depthTexture});
+        if (iter == m_cachedFrameBuffers.end()) {
+            UniqueBgfxHandle<bgfx::TextureHandle> colorTex(
+                bgfx::createTexture2D(1,
+                                      1,
+                                      false,
+                                      (uint16_t)viewInstanceCount,
+                                      DxgiFormatToBgfxFormat(colorSwapchainFormat),
+                                      (IsSRGBFormat(colorSwapchainFormat) ? BGFX_TEXTURE_SRGB : 0) | BGFX_TEXTURE_RT));
+            UniqueBgfxHandle<bgfx::TextureHandle> depthTex(bgfx::createTexture2D(
+                1, 1, false, (uint16_t)viewInstanceCount, DxgiFormatToBgfxFormat(depthSwapchainFormat), BGFX_TEXTURE_RT_WRITE_ONLY));
+
+            // Force BGFX to create the texture now, which is necessary in order to use overrideInternal.
+            bgfx::frame();
+
+            bgfx::overrideInternal(colorTex.Get(), reinterpret_cast<uintptr_t>(colorTexture));
+            bgfx::overrideInternal(depthTex.Get(), reinterpret_cast<uintptr_t>(depthTexture));
+
+            CachedFrameBuffer frameBuffer;
+            frameBuffer.FrameBuffers.resize(viewInstanceCount);
+            for (uint32_t k = 0; k < viewInstanceCount; k++) {
+                std::array<bgfx::Attachment, 2> attachments{};
+                attachments[0].init(colorTex.Get(), bgfx::Access::Write, static_cast<uint16_t>(k));
+                attachments[1].init(depthTex.Get(), bgfx::Access::Write, static_cast<uint16_t>(k));
+
+                frameBuffer.FrameBuffers[k] = UniqueBgfxHandle<bgfx::FrameBufferHandle>(
+                    bgfx::createFrameBuffer(static_cast<uint8_t>(attachments.size()), attachments.data(), false));
+            }
+            iter = m_cachedFrameBuffers.emplace(std::make_tuple(colorTexture, depthTexture), std::move(frameBuffer)).first;
+        }
+
         const uint32_t newTotalModifyCount = std::accumulate(
             m_nodes.begin(),
             m_nodes.end(),
