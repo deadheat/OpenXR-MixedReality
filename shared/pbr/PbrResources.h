@@ -67,7 +67,7 @@ namespace Pbr {
         ~Resources();
 
         // Submit the program
-        void SubmitProgram() const;
+        void SubmitProgram() const ;
         // Sets the Bidirectional Reflectance Distribution Function Lookup Table texture, required by the shader to compute surface
         // reflectance from the IBL.
         void SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut);
