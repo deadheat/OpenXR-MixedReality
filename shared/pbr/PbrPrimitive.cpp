@@ -30,7 +30,7 @@ namespace {
         return (UINT)(sizeof(decltype(Pbr::PrimitiveBuilder::Vertices)::value_type) * size);
     }
 
-   winrt::com_ptr<bgfx::VertexBufferHandle> CreateVertexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder,
+   UniqueBgfxHandle<bgfx::VertexBufferHandle> CreateVertexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder,
                                                     bool updatableBuffers) {
         // Create Vertex Buffer BGFX
         bgfx::VertexLayout vertexLayout;
@@ -53,17 +53,17 @@ namespace {
         //    desc.CPUAccessFlags |= D3D11_CPU_ACCESS_WRITE;
         //}
 
-        D3D11_SUBRESOURCE_DATA initData{};
-        initData.pSysMem = primitiveBuilder.Vertices.data();
+        //D3D11_SUBRESOURCE_DATA initData{};
+        //initData.pSysMem = primitiveBuilder.Vertices.data();
 
-        winrt::com_ptr<bgfx::VertexBufferHandle> vertexBuffer;
-        bgfx::VertexBufferHandle rawVertexBuffer = 
-            bgfx::createVertexBuffer(bgfx::makeRef(primitiveBuilder.Vertices.data(), sizeof(primitiveBuilder.Vertices.data())), vertexLayout);
-        vertexBuffer.copy_from(&rawVertexBuffer);
-        return vertexBuffer;
+        //UniqueBgfxHandle<bgfx::VertexBufferHandle> vertexBuffer;
+        //bgfx::VertexBufferHandle rawVertexBuffer = 
+        //    
+        //vertexBuffer.copy_from(&rawVertexBuffer);
+        return UniqueBgfxHandle(bgfx::createVertexBuffer(bgfx::makeRef(primitiveBuilder.Vertices.data(), sizeof(primitiveBuilder.Vertices.data())), vertexLayout));
     }
 
-     winrt::com_ptr<bgfx::IndexBufferHandle> CreateIndexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder
+     UniqueBgfxHandle<bgfx::IndexBufferHandle> CreateIndexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder
                                                    /*,bool updatableBuffers*/) {
         // Create bgfx Index Buffer
         // Create Index Buffer
@@ -80,13 +80,8 @@ namespace {
        /* D3D11_SUBRESOURCE_DATA initData{};
         initData.pSysMem = primitiveBuilder.Indices.data();*/
 
-        winrt::com_ptr<bgfx::IndexBufferHandle> indexBuffer;
-       
-
-        bgfx::IndexBufferHandle rawIndexBuffer = 
-            bgfx::createIndexBuffer(bgfx::makeRef(primitiveBuilder.Indices.data(), sizeof(primitiveBuilder.Indices.data())));
-        indexBuffer.copy_from(&rawIndexBuffer);
-        return indexBuffer;
+    
+        return UniqueBgfxHandle(bgfx::createIndexBuffer(bgfx::makeRef(primitiveBuilder.Indices.data(), sizeof(primitiveBuilder.Indices.data()))));
     }
 } // namespace
 
@@ -94,8 +89,8 @@ namespace Pbr {
     const bgfx::RendererType::Enum type = bgfx::getRendererType();
 
     Primitive::Primitive(UINT indexCount,
-                         winrt::com_ptr<bgfx::IndexBufferHandle> indexBuffer,
-                         winrt::com_ptr<bgfx::VertexBufferHandle> vertexBuffer,
+                         UniqueBgfxHandle<bgfx::IndexBufferHandle> indexBuffer,
+                         UniqueBgfxHandle<bgfx::VertexBufferHandle> vertexBuffer,
                          std::shared_ptr<Material> material)
         : m_indexCount(indexCount)
         , m_indexBuffer(std::move(indexBuffer))

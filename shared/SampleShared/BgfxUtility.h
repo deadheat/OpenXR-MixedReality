@@ -33,14 +33,14 @@ public:
     explicit UniqueBgfxHandle(HandleType handle)
         : m_handle(handle) {
     }
-    //UniqueBgfxHandle(const UniqueBgfxHandle&) = delete;
+    UniqueBgfxHandle(const UniqueBgfxHandle&) = delete;
     UniqueBgfxHandle(UniqueBgfxHandle&& other) noexcept;
 
     ~UniqueBgfxHandle() noexcept {
         Reset();
     }
 
-    //UniqueBgfxHandle& operator=(const UniqueBgfxHandle&) = delete;
+    UniqueBgfxHandle& operator=(const UniqueBgfxHandle&) = delete;
     UniqueBgfxHandle& operator=(UniqueBgfxHandle&& other) noexcept;
 
     HandleType Get() const noexcept;

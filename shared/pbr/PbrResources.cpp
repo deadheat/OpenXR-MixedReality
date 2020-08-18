@@ -67,17 +67,13 @@ namespace Pbr {
                 .end();
             // Set up pixel shader.
             bgfx::RendererType::Enum type = bgfx::RendererType::Direct3D11;
-            Resources.PbrPixelShader.copy_from(
-                bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrPixelShader"));
+            Resources.PbrPixelShader = UniqueBgfxHandle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrPixelShader")));
             
-            Resources.HighlightPixelShader.copy_from(
-                bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightPixelShader"));
+            Resources.HighlightPixelShader = UniqueBgfxHandle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightPixelShader"));
 
-            Resources.PbrVertexShader.copy_from(
-                bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrVertexShader"));
+            Resources.PbrVertexShader = UniqueBgfxHandle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrVertexShader"));
 
-            Resources.PbrVertexShader.copy_from(
-                bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightVertexShader"));
+            Resources.PbrVertexShader = UniqueBgfxHandle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightVertexShader"));
 
  
             // Seyi NOTE: since there are no constant buffers in bgfx, will find some type of way to implement without
@@ -171,36 +167,36 @@ namespace Pbr {
         }
 
         struct DeviceResources {
-            winrt::com_ptr<bgfx::UniformHandle> EnvironmentMapSampler;
+            UniqueBgfxHandle<bgfx::UniformHandle> EnvironmentMapSampler;
 
 
-            winrt::com_ptr<bgfx::UniformHandle> MetallicRoughnessSampler;
-            winrt::com_ptr<bgfx::UniformHandle> NormalSampler; 
-            winrt::com_ptr<bgfx::UniformHandle> OcclusionSampler;
-            winrt::com_ptr<bgfx::UniformHandle> EmissiveSampler; 
-            winrt::com_ptr<bgfx::UniformHandle> BRDFSampler;
-            winrt::com_ptr<bgfx::UniformHandle> SpecularSampler; 
-            winrt::com_ptr<bgfx::UniformHandle> DiffuseSampler;
-            winrt::com_ptr<bgfx::ProgramHandle> ShaderProgram;
-            winrt::com_ptr<bgfx::VertexLayout> InputLayout;
-            winrt::com_ptr<bgfx::EmbeddedShader> PbrVertexShader;
-            winrt::com_ptr<bgfx::EmbeddedShader> PbrPixelShader;
-            winrt::com_ptr<bgfx::EmbeddedShader> HighlightVertexShader;
-            winrt::com_ptr<bgfx::EmbeddedShader> HighlightPixelShader;
+            UniqueBgfxHandle<bgfx::UniformHandle> MetallicRoughnessSampler;
+            UniqueBgfxHandle<bgfx::UniformHandle> NormalSampler; 
+            UniqueBgfxHandle<bgfx::UniformHandle> OcclusionSampler;
+            UniqueBgfxHandle<bgfx::UniformHandle> EmissiveSampler; 
+            UniqueBgfxHandle<bgfx::UniformHandle> BRDFSampler;
+            UniqueBgfxHandle<bgfx::UniformHandle> SpecularSampler; 
+            UniqueBgfxHandle<bgfx::UniformHandle> DiffuseSampler;
+            UniqueBgfxHandle<bgfx::ProgramHandle> ShaderProgram;
+            UniqueBgfxHandle<bgfx::VertexLayout> InputLayout;
+            UniqueBgfxHandle<bgfx::EmbeddedShader> PbrVertexShader;
+            UniqueBgfxHandle<bgfx::EmbeddedShader> PbrPixelShader;
+            UniqueBgfxHandle<bgfx::EmbeddedShader> HighlightVertexShader;
+            UniqueBgfxHandle<bgfx::EmbeddedShader> HighlightPixelShader;
             //winrt::com_ptr<ID3D11Buffer> SceneConstantBuffer;
             winrt::com_ptr<SceneUniforms> SceneUniforms;
             winrt::com_ptr<UniformHandles> AllUniformHandles;
             winrt::com_ptr<ModelConstantUniform> ModelConstantUniform;
-            winrt::com_ptr<bgfx::TextureHandle> BrdfLut;
-            winrt::com_ptr<bgfx::TextureHandle> SpecularEnvironmentMap;
-            winrt::com_ptr<bgfx::TextureHandle> DiffuseEnvironmentMap;
+            UniqueBgfxHandle<bgfx::TextureHandle> BrdfLut;
+            UniqueBgfxHandle<bgfx::TextureHandle> SpecularEnvironmentMap;
+            UniqueBgfxHandle<bgfx::TextureHandle> DiffuseEnvironmentMap;
             winrt::com_ptr<uint64_t> AlphaBlendState;
             winrt::com_ptr<uint64_t> DefaultBlendState;
             winrt::com_ptr<uint64_t>
                 RasterizerStates[2][2][2]; // Three dimensions for [DoubleSide][Wireframe][FrontCounterClockWise]
             uint64_t StateFlags;
             winrt::com_ptr<uint64_t> DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
-            mutable std::map<uint32_t, winrt::com_ptr<ID3D11ShaderResourceView>> SolidColorTextureCache;
+            mutable std::map<uint32_t, UniqueBgfxHandle<bgfx::TextureHandle>> SolidColorTextureCache;
         };
 
         DeviceResources Resources;
@@ -227,7 +223,7 @@ namespace Pbr {
     Resources::~Resources() = default;
 
     void Resources::SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut) {
-        m_impl->Resources.BrdfLut.copy_from(brdfLut);
+        m_impl->Resources.BrdfLut = UniqueBgfxHandle(*brdfLut);
     }
 
     void Resources::CreateDeviceDependentResources() {
@@ -247,7 +243,7 @@ namespace Pbr {
     void Resources::SubmitProgram() const {
         // Need to submit program somehow
         //(*pbrResources.m_impl.get()).Resources
-        bgfx::submit(0,*m_impl->Resources.ShaderProgram.get());
+        bgfx::submit(0,m_impl->Resources.ShaderProgram.Get());
         // ;
     }
 
@@ -312,11 +308,11 @@ namespace Pbr {
 
         // m_impl->SceneBuffer.NumSpecularMipLevels = desc.TextureCube.MipLevels;
         m_impl->SceneUniformsInstance.u_numSpecularMipLevelsAnimationTime[0] = textureInformation["specularEnvironmentView"].numMips;
-        m_impl->Resources.SpecularEnvironmentMap.copy_from(specularEnvironmentMap);
-        m_impl->Resources.DiffuseEnvironmentMap.copy_from(diffuseEnvironmentMap);
+        m_impl->Resources.SpecularEnvironmentMap = UniqueBgfxHandle(*specularEnvironmentMap);
+        m_impl->Resources.DiffuseEnvironmentMap = UniqueBgfxHandle(*diffuseEnvironmentMap);
     }
 
-    winrt::com_ptr<bgfx::TextureHandle> Resources::CreateSolidColorTexture(RGBAColor color) const {
+    UniqueBgfxHandle<bgfx::TextureHandle> Resources::CreateSolidColorTexture(RGBAColor color) const {
         const std::array<uint8_t, 4> rgba = Texture::LoadRGBAUI4(color);
 
         // Check cache to see if this flat texture already exists.
@@ -329,7 +325,7 @@ namespace Pbr {
             }
         }
 
-        winrt::com_ptr<bgfx::TextureHandle> texture =
+        UniqueBgfxHandle<bgfx::TextureHandle> texture =
             Pbr::Texture::CreateTexture(rgba.data(), 1, 1, 1, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
         std::lock_guard guard(m_impl->m_cacheMutex);
         // If the key already exists then the existing texture will be returned.
@@ -367,14 +363,15 @@ namespace Pbr {
         const bgfx::ShaderHandle fsh;
 
         if (m_impl->Shading == ShadingMode::Highlight) {
-            vsh = *m_impl->Resources.HighlightVertexShader.get();
-            fsh = *m_impl->Resources.HighlightPixelShader.get();
+            vsh = m_impl->Resources.HighlightVertexShader.Get();
+            fsh = m_impl->Resources.HighlightPixelShader.Get();
         } else {
-            vsh = *m_impl->Resources.PbrVertexShader.get();
-            fsh = *m_impl->Resources.PbrPixelShader.get();
+            vsh = m_impl->Resources.PbrVertexShader.Get();
+            fsh = m_impl->Resources.PbrPixelShader.Get();
         }
 
-        m_impl->Resources.ShaderProgram.copy_from(&bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
+        m_impl->Resources.ShaderProgram =
+            UniqueBgfxHandle<bgfx::ProgramHandle>(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
 
         /*ID3D11Buffer* vsBuffers[] = {m_impl->Resources.SceneConstantBuffer.get(), m_impl->Resources.ModelConstantBuffer.get()};
         context->VSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(vsBuffers), vsBuffers);
@@ -385,9 +382,9 @@ namespace Pbr {
         /*static_assert(ShaderSlots::DiffuseTexture == ShaderSlots::SpecularTexture + 1, "Diffuse must follow Specular slot");
         static_assert(ShaderSlots::SpecularTexture == ShaderSlots::Brdf + 1, "Specular must follow BRDF slot");*/
 
-        bgfx::setTexture(5, *m_impl->Resources.BRDFSampler.get(), *m_impl->Resources.BrdfLut.get());
-        bgfx::setTexture(6, *m_impl->Resources.SpecularSampler.get(), *m_impl->Resources.SpecularEnvironmentMap.get());
-        bgfx::setTexture(7, *m_impl->Resources.DiffuseSampler.get(), *m_impl->Resources.DiffuseEnvironmentMap.get());
+        bgfx::setTexture(5, m_impl->Resources.BRDFSampler.Get(), m_impl->Resources.BrdfLut.Get());
+        bgfx::setTexture(6, m_impl->Resources.SpecularSampler.Get(), m_impl->Resources.SpecularEnvironmentMap.Get());
+        bgfx::setTexture(7, m_impl->Resources.DiffuseSampler.Get(), m_impl->Resources.DiffuseEnvironmentMap.Get());
 
    /*     bgfx::TextureHandle* shaderRes ources[] = {
             m_impl->Resources.BrdfLut.get(), m_impl->Resources.SpecularEnvironmentMap.get(), m_impl->Resources.DiffuseEnvironmentMap.get()};

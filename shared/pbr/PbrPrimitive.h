@@ -21,8 +21,8 @@ namespace Pbr {
 
         Primitive() = delete;
         Primitive(UINT indexCount,
-                  winrt::com_ptr<bgfx::IndexBufferHandle> indexBuffer,
-                  winrt::com_ptr<bgfx::VertexBufferHandle> vertexBuffer,
+                  UniqueBgfxHandle<bgfx::IndexBufferHandle> indexBuffer,
+                  UniqueBgfxHandle<bgfx::VertexBufferHandle> vertexBuffer,
                   std::shared_ptr<Material> material);
         Primitive(Pbr::Resources const& pbrResources,
                   const Pbr::PrimitiveBuilder& primitiveBuilder,
@@ -46,9 +46,9 @@ namespace Pbr {
 
     private:
         UINT m_indexCount;
-        winrt::com_ptr<bgfx::IndexBufferHandle> m_indexBuffer;
-        winrt::com_ptr<bgfx::VertexBufferHandle> m_vertexBuffer;
-        winrt::com_ptr<bgfx::ProgramHandle> m_shaderProgram;
+        UniqueBgfxHandle<bgfx::IndexBufferHandle> m_indexBuffer;
+        UniqueBgfxHandle<bgfx::VertexBufferHandle> m_vertexBuffer;
+        UniqueBgfxHandle<bgfx::ProgramHandle>  m_shaderProgram;
         std::shared_ptr<Material> m_material;
     };
 } // namespace Pbr
