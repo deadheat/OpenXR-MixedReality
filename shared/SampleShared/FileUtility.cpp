@@ -101,20 +101,20 @@ namespace sample {
 
         // Read the BRDF Lookup Table used by the PBR system into a DirectX texture.
         std::vector<byte> brdfLutFileData = ReadFileBytes(FindFileInAppFolder(L"brdf_lut.png", {"", L"Pbr_uwp"}));
-        winrt::com_ptr<bgfx::TextureHandle> brdLutResourceView =
+        UniqueBgfxHandle<bgfx::TextureHandle> brdLutResourceView =
             Pbr::Texture::LoadTextureImage(brdfLutFileData.data(), (uint32_t)brdfLutFileData.size());
-        pbrResources.SetBrdfLut(brdLutResourceView.get());
-
-        winrt::com_ptr<bgfx::TextureHandle> diffuseTextureView;
-        winrt::com_ptr<bgfx::TextureHandle> specularTextureView;
+        pbrResources.SetBrdfLut(&brdLutResourceView.Get());
+        UniqueBgfxHandle<bgfx::TextureHandle> diffuseTextureView;
+        UniqueBgfxHandle<bgfx::TextureHandle> specularTextureView;
         std::map<std::string, bgfx::TextureInfo> textureInformation;
         if (environmentIBL) {
             
-            diffuseTextureView.copy_from(&loadTexture(FindFileInAppFolder(L"Sample_DiffuseHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
+            diffuseTextureView = UniqueBgfxHandle(loadTexture(FindFileInAppFolder(L"Sample_DiffuseHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
                                                       NULL,
                                                       NULL,
                                                       &textureInformation["diffuseTextureView"]));
-            specularTextureView.copy_from(&loadTexture(FindFileInAppFolder(L"Sample_SpecularHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
+            specularTextureView =
+                UniqueBgfxHandle(loadTexture(FindFileInAppFolder(L"Sample_SpecularHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
                                                        NULL,
                                                        NULL,
                                                        &textureInformation["specularTextureView"]));
@@ -131,7 +131,7 @@ namespace sample {
             specularTextureView = Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White);
         }
 
-        pbrResources.SetEnvironmentMap(specularTextureView.get(), diffuseTextureView.get(), textureInformation);
+        pbrResources.SetEnvironmentMap(&specularTextureView.Get(), &diffuseTextureView.Get(), textureInformation);
 
         return pbrResources;
     }

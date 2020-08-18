@@ -67,7 +67,7 @@ namespace Pbr {
         ~Resources();
 
         // Submit the program
-        void SubmitProgram() const;
+        void SubmitProgram() const ;
         // Sets the Bidirectional Reflectance Distribution Function Lookup Table texture, required by the shader to compute surface
         // reflectance from the IBL.
         void SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut);
@@ -101,7 +101,7 @@ namespace Pbr {
 
         // Many 1x1 pixel colored textures are used in the PBR system. This is used to create textures backed by a cache to reduce the
         // number of textures created.
-        winrt::com_ptr<bgfx::TextureHandle> CreateSolidColorTexture(RGBAColor color) const;
+        UniqueBgfxHandle<bgfx::TextureHandle> CreateSolidColorTexture(RGBAColor color) const;
 
         // Bind the the PBR resources to the current context.
         void Bind() const;
