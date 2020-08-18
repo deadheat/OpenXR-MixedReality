@@ -8,6 +8,11 @@
 #include <d3d11.h>
 #include <d3d11_2.h>
 #include "PbrMaterial.h"
+#include <bgfx/bgfx.h>
+
+#include <bgfx/platform.h>
+
+#include <bx/uint32_t.h>
 
 namespace Pbr {
     // A primitive holds a vertex buffer, index buffer, and a pointer to a PBR material.
@@ -16,15 +21,15 @@ namespace Pbr {
 
         Primitive() = delete;
         Primitive(UINT indexCount,
-                  winrt::com_ptr<ID3D11Buffer> indexBuffer,
-                  winrt::com_ptr<ID3D11Buffer> vertexBuffer,
+                  winrt::com_ptr<bgfx::IndexBufferHandle> indexBuffer,
+                  winrt::com_ptr<bgfx::VertexBufferHandle> vertexBuffer,
                   std::shared_ptr<Material> material);
         Primitive(Pbr::Resources const& pbrResources,
                   const Pbr::PrimitiveBuilder& primitiveBuilder,
                   std::shared_ptr<Material> material,
                   bool updatableBuffers = false);
 
-        void UpdateBuffers(_In_ ID3D11Device* device, _In_ ID3D11DeviceContext* context, const Pbr::PrimitiveBuilder& primitiveBuilder);
+        void UpdateBuffers(const Pbr::PrimitiveBuilder& primitiveBuilder);
 
         // Get the material for the primitive.
         std::shared_ptr<Material>& GetMaterial() {
@@ -36,13 +41,14 @@ namespace Pbr {
 
     protected:
         friend struct Model;
-        void Render(_In_ ID3D11DeviceContext* context) const;
+        void Render() const;
         Primitive Clone(Pbr::Resources const& pbrResources) const;
 
     private:
         UINT m_indexCount;
-        winrt::com_ptr<ID3D11Buffer> m_indexBuffer;
-        winrt::com_ptr<ID3D11Buffer> m_vertexBuffer;
+        winrt::com_ptr<bgfx::IndexBufferHandle> m_indexBuffer;
+        winrt::com_ptr<bgfx::VertexBufferHandle> m_vertexBuffer;
+        winrt::com_ptr<bgfx::ProgramHandle> m_shaderProgram;
         std::shared_ptr<Material> m_material;
     };
 } // namespace Pbr

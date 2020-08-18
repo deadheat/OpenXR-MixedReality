@@ -115,9 +115,8 @@ ID3D11Texture2D* TextTexture::Texture() const {
 
 std::shared_ptr<Pbr::Material> TextTexture::CreatePbrMaterial(const Pbr::Resources& pbrResources) const {
     auto material = Pbr::Material::CreateFlat(pbrResources, Pbr::RGBA::White);
-
-    winrt::com_ptr<ID3D11ShaderResourceView> textSrv;
-    CHECK_HRCMD(pbrResources.GetDevice()->CreateShaderResourceView(Texture(), nullptr, textSrv.put()));
+    winrt::com_ptr<bgfx::TextureHandle> textSrv;
+    //CHECK_HRCMD(pbrResources.GetDevice()->CreateShaderResourceView(Texture(), nullptr, textSrv.put()));
 
     material->SetTexture(Pbr::ShaderSlots::BaseColor, textSrv.get());
     material->SetAlphaBlended(true);

@@ -40,9 +40,9 @@ void PbrModelObject::Render(SceneContext& sceneContext) const {
 
     sceneContext.PbrResources.SetShadingMode(m_shadingMode);
     sceneContext.PbrResources.SetFillMode(m_fillMode);
-    sceneContext.PbrResources.SetModelToWorld(WorldTransform(), sceneContext.DeviceContext.get());
-    sceneContext.PbrResources.Bind(sceneContext.DeviceContext.get());
-    m_pbrModel->Render(sceneContext.PbrResources, sceneContext.DeviceContext.get());
+    sceneContext.PbrResources.SetModelToWorld(WorldTransform());
+    sceneContext.PbrResources.Bind();
+    m_pbrModel->Render(sceneContext.PbrResources);
 }
 
 void PbrModelObject::SetShadingMode(const Pbr::ShadingMode& shadingMode) {

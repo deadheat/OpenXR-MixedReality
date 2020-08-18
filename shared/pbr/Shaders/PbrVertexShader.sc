@@ -15,44 +15,48 @@
 // 
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
+$input a_position, a_normal, a_tangent, a_color0, a_texCoord0, a_indices, i_data0, i_data1, i_data2, i_data3, i_data4
+$output v_positionProj, v_positionWorld, v_TBN, v_texCoord0, v_color0
 
-#include "PbrShared.hlsl"
+#include "PbrShared.sc"
 
-StructuredBuffer<float4x4> Transforms : register(t0);
+//StructuredBuffer<float4x4> Transforms : register(t0);
 
-cbuffer ModelConstantBuffer : register(b1)
+uniform mat4 u_modelToWorld;
+
+//cbuffer ModelConstantBuffer : register(b1)
+//{
+//    float4x4 ModelToWorld  : packoffset(c0);
+//
+//};
+
+//struct VSInputPbr
+//{
+//    float4      Position            : POSITION;
+//    float3      Normal              : NORMAL;
+//    float4      Tangent             : TANGENT;
+//    float4      Color0              : COLOR0;
+//    float2      TexCoord0           : TEXCOORD0;
+//    min16uint   ModelTransformIndex : TRANSFORMINDEX;
+//};
+
+VSOutputPbr main()
 {
-    float4x4 ModelToWorld  : packoffset(c0);
+    mat4 transform;
+	transform[0] = i_data0;
+	transform[1] = i_data1;
+	transform[2] = i_data2;
+	transform[3] = i_data3;
+    const mat4 modelTransform = instMul(transform, u_modelToWorld);
+    const vec4 transformedPosWorld = mul(a_position, modelTransform);
+    v_positionProj = mul(transformedPosWorld, u_viewProjection);
+    v_positionWorld = transformedPosWorld.xyz / transformedPosWorld.w;
 
-};
+    const vec3 normalW = normalize(mul(vec4(a_normal, 0.0), modelTransform).xyz);
+    const vec3 tangentW = normalize(mul(vec4(a_tangent.xyz, 0.0), modelTransform).xyz);
+    const vec3 bitangentW = cross(normalW, tangentW) * a_tangent.w;
+    v_TBN = float3x3(tangentW, bitangentW, normalW);
 
-struct VSInputPbr
-{
-    float4      Position            : POSITION;
-    float3      Normal              : NORMAL;
-    float4      Tangent             : TANGENT;
-    float4      Color0              : COLOR0;
-    float2      TexCoord0           : TEXCOORD0;
-    min16uint   ModelTransformIndex : TRANSFORMINDEX;
-};
-
-#define VSOutputPbr PSInputPbr
-VSOutputPbr main(VSInputPbr input)
-{
-    VSOutputPbr output;
-
-    const float4x4 modelTransform = mul(Transforms[input.ModelTransformIndex], ModelToWorld);
-    const float4 transformedPosWorld = mul(input.Position, modelTransform);
-    output.PositionProj = mul(transformedPosWorld, ViewProjection);
-    output.PositionWorld = transformedPosWorld.xyz / transformedPosWorld.w;
-
-    const float3 normalW = normalize(mul(float4(input.Normal, 0.0), modelTransform).xyz);
-    const float3 tangentW = normalize(mul(float4(input.Tangent.xyz, 0.0), modelTransform).xyz);
-    const float3 bitangentW = cross(normalW, tangentW) * input.Tangent.w;
-    output.TBN = float3x3(tangentW, bitangentW, normalW);
-
-    output.TexCoord0 = input.TexCoord0;
-    output.Color0 = input.Color0;
-
-    return output;
+    v_texCoord0 = a_texCoord0;
+    v_color0 = a_color0;
 }

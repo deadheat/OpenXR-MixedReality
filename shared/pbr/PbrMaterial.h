@@ -39,7 +39,7 @@ namespace Pbr {
         static_assert((sizeof(ConstantBufferData) % 16) == 0, "Constant Buffer must be divisible by 16 bytes");
 
         // Create a uninitialized material. Textures and shader coefficients must be set.
-        Material(Pbr::Resources const& pbrResources);
+        Material();
 
         // Create a clone of this material.
         std::shared_ptr<Material> Clone(Pbr::Resources const& pbrResources) const;
@@ -53,15 +53,15 @@ namespace Pbr {
 
         // Set a Metallic-Roughness texture.
         void SetTexture(ShaderSlots::PSMaterial slot,
-                        _In_ ID3D11ShaderResourceView* textureView,
-                        _In_opt_ ID3D11SamplerState* sampler = nullptr);
+                        _In_ bgfx::TextureHandle* textureView,
+                        _In_opt_ bgfx::UniformHandle* sampler = nullptr);
 
         void SetDoubleSided(bool doubleSided);
         void SetWireframe(bool wireframeMode);
         void SetAlphaBlended(bool alphaBlended);
 
         // Bind this material to current context.
-        void Bind(_In_ ID3D11DeviceContext* context, const Resources& pbrResources) const;
+        void Bind(const Resources& pbrResources) const;
 
         ConstantBufferData& Parameters();
         const ConstantBufferData& Parameters() const;
@@ -77,9 +77,13 @@ namespace Pbr {
         bool m_doubleSided{false};
         bool m_wireframe{false};
 
+        bgfx::UniformHandle m_baseColorFactor;
+        bgfx::UniformHandle m_metallicRoughnessNormalOcclusion;
+        bgfx::UniformHandle m_emissiveAlphaCutoff;
+
         static constexpr size_t TextureCount = ShaderSlots::LastMaterialSlot + 1;
-        std::array<winrt::com_ptr<ID3D11ShaderResourceView>, TextureCount> m_textures;
-        std::array<winrt::com_ptr<ID3D11SamplerState>, TextureCount> m_samplers;
-        winrt::com_ptr<ID3D11Buffer> m_constantBuffer;
+        std::array<winrt::com_ptr<bgfx::TextureHandle>, TextureCount> m_textures;
+        std::array<winrt::com_ptr<bgfx::UniformHandle>, TextureCount> m_samplers;
+        winrt::com_ptr<bgfx::UniformHandle> m_constantBuffer;
     };
 } // namespace Pbr

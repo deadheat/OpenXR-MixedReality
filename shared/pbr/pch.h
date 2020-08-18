@@ -12,5 +12,8 @@
 #include <chrono>
 
 #include <DirectXMath.h>
+#include <XrUtility/XrMath.h>
+#include <XrUtility/XrError.h>
+
 
 #include <winrt/base.h> // winrt::com_ptr

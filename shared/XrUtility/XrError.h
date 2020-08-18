@@ -15,6 +15,7 @@
 //*********************************************************
 #pragma once
 
+#include <windows.h>
 #include <memory>
 #include <stdexcept>
 #include "XrToString.h"

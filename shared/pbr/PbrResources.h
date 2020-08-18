@@ -60,18 +60,20 @@ namespace Pbr {
     };
 
     // Global PBR resources required for rendering a scene.
-    struct Resources final {
-        explicit Resources(_In_ ID3D11Device* d3dDevice);
+     struct Resources final {
+        explicit Resources();
         Resources(Resources&&);
 
         ~Resources();
 
+        // Submit the program
+        void SubmitProgram() const;
         // Sets the Bidirectional Reflectance Distribution Function Lookup Table texture, required by the shader to compute surface
         // reflectance from the IBL.
-        void SetBrdfLut(_In_ ID3D11ShaderResourceView* brdfLut);
+        void SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut);
 
         // Create device-dependent resources.
-        void CreateDeviceDependentResources(_In_ ID3D11Device* device);
+        void CreateDeviceDependentResources();
 
         // Release device-dependent resources.
         void ReleaseDeviceDependentResources();
@@ -90,20 +92,22 @@ namespace Pbr {
         void StartHighlightAnimation(DirectX::XMFLOAT3 location, Duration currentTotalTimeElapsed);
 
         // Set the specular and diffuse image-based lighting (IBL) maps. ShaderResourceViews must be TextureCubes.
-        void SetEnvironmentMap(_In_ ID3D11ShaderResourceView* specularEnvironmentMap, _In_ ID3D11ShaderResourceView* diffuseEnvironmentMap);
+        void SetEnvironmentMap(_In_ bgfx::TextureHandle* specularEnvironmentMap,
+                               _In_ bgfx::TextureHandle* diffuseEnvironmentMap,
+                               std::map<std::string, bgfx::TextureInfo>& textureInformation);
 
         // Set the current view and projection matrices.
         void XM_CALLCONV SetViewProjection(DirectX::FXMMATRIX view, DirectX::CXMMATRIX projection);
 
         // Many 1x1 pixel colored textures are used in the PBR system. This is used to create textures backed by a cache to reduce the
         // number of textures created.
-        winrt::com_ptr<ID3D11ShaderResourceView> CreateSolidColorTexture(RGBAColor color) const;
+        winrt::com_ptr<bgfx::TextureHandle> CreateSolidColorTexture(RGBAColor color) const;
 
         // Bind the the PBR resources to the current context.
-        void Bind(_In_ ID3D11DeviceContext* context) const;
+        void Bind() const;
 
         // Set and update the model to world constant buffer value.
-        void XM_CALLCONV SetModelToWorld(DirectX::FXMMATRIX modelToWorld, _In_ ID3D11DeviceContext* context) const;
+        void XM_CALLCONV SetModelToWorld(DirectX::FXMMATRIX modelToWorld) const;
 
         // Set or get the shading and fill modes.
         void SetShadingMode(ShadingMode mode);
@@ -116,9 +120,7 @@ namespace Pbr {
         void SetDepthFuncReversed(bool reverseZ);
 
     private:
-        void SetBlendState(_In_ ID3D11DeviceContext* context, bool enabled) const;
-        void SetRasterizerState(_In_ ID3D11DeviceContext* context, bool doubleSided, bool wireframe) const;
-        void SetDepthStencilState(_In_ ID3D11DeviceContext* context, bool disableDepthWrite) const;
+        void SetState(bool blended, bool doubleSided, bool wireframe, bool disableDepthWrite) const;
 
         friend struct Material;
 

@@ -17,7 +17,7 @@
 
 #include <XrUtility/XrMath.h>
 #include <XrUtility/XrEnumerate.h>
-#include <SampleShared/DxUtility.h>
+#include <SampleShared/BgfxUtility.h>
 #include <SampleShared/Trace.h>
 
 #include "ProjectionLayer.h"
@@ -25,7 +25,7 @@
 #include "Scene.h"
 #include "SceneContext.h"
 
-using namespace DirectX;
+//using namespace DirectX;
 
 ProjectionLayer::ProjectionLayer(const xr::SessionContext& sessionContext) {
     auto primaryViewConfiguraionType = sessionContext.PrimaryViewConfigurationType;
@@ -133,7 +133,7 @@ void ProjectionLayer::PrepareRendering(const SceneContext& sceneContext,
 
     // Create color swapchain with recommended properties.
     viewConfigComponent.ColorSwapchain =
-        sample::dx::CreateSwapchainD3D11(sceneContext.Session.Handle,
+        sample::bg::CreateSwapchainD3D11(sceneContext.Session.Handle,
                                          layerCurrentConfig.ColorSwapchainFormat,
                                          swapchainImageWidth * wideScale,
                                          swapchainImageHeight,
@@ -145,7 +145,7 @@ void ProjectionLayer::PrepareRendering(const SceneContext& sceneContext,
 
     // Create depth swapchain with recommended properties.
     viewConfigComponent.DepthSwapchain =
-        sample::dx::CreateSwapchainD3D11(sceneContext.Session.Handle,
+        sample::bg::CreateSwapchainD3D11(sceneContext.Session.Handle,
                                          layerCurrentConfig.DepthSwapchainFormat,
                                          swapchainImageWidth * wideScale,
                                          swapchainImageHeight,
@@ -177,8 +177,8 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
                              XrViewConfigurationType viewConfig) {
 
     ViewConfigComponent& viewConfigComponent = m_viewConfigComponents.at(viewConfig);
-    const sample::dx::SwapchainD3D11& colorSwapchain = viewConfigComponent.ColorSwapchain;
-    const sample::dx::SwapchainD3D11& depthSwapchain = viewConfigComponent.DepthSwapchain;
+    const sample::bg::SwapchainD3D11& colorSwapchain = viewConfigComponent.ColorSwapchain;
+    const sample::bg::SwapchainD3D11& depthSwapchain = viewConfigComponent.DepthSwapchain;
     std::vector<XrCompositionLayerProjectionView>& projectionViews = viewConfigComponent.ProjectionViews;
     std::vector<XrCompositionLayerDepthInfoKHR>& depthInfo = viewConfigComponent.DepthInfo;
     std::vector<D3D11_VIEWPORT>& viewports = viewConfigComponent.Viewports;
@@ -299,7 +299,7 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
                 DirectX::XMMATRIX worldToViewMatrix = xr::math::LoadInvertedXrPose(projectionViews[viewIndex].pose);
 
                 sceneContext.PbrResources.SetViewProjection(worldToViewMatrix, projectionMatrix);
-                sceneContext.PbrResources.Bind(sceneContext.DeviceContext.get());
+                sceneContext.PbrResources.Bind();
                 sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
 
                 // Render all active scenes.

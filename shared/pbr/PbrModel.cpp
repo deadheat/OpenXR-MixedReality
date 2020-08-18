@@ -4,6 +4,14 @@
 #include "pch.h"
 #include "PbrCommon.h"
 #include "PbrModel.h"
+#include "SampleShared/BgfxUtility.h"
+
+#include <bx/platform.h>
+#include <bx/math.h>
+#include <bx/pixelformat.h>
+
+#include <bgfx/platform.h>
+#include <bgfx/embedded_shader.h>
 
 using namespace DirectX;
 
@@ -24,22 +32,21 @@ namespace Pbr
         }
     }
 
-    void Model::Render(Pbr::Resources const& pbrResources, _In_ ID3D11DeviceContext* context) const
+    void Model::Render(Pbr::Resources const& pbrResources) const
     {
-        UpdateTransforms(pbrResources, context);
-
-        ID3D11ShaderResourceView* vsShaderResources[] = { m_modelTransformsResourceView.get() };
-        context->VSSetShaderResources(Pbr::ShaderSlots::Transforms, _countof(vsShaderResources), vsShaderResources);
+        UpdateTransforms(pbrResources);
+        // bgfx doesnt use shader slots from the looks of it and the modelTransforms are done by some internal bgfx gymnastics
+        //Pbr::ShaderSlots::Transforms
+        //context->VSSetShaderResources(Pbr::ShaderSlots::Transforms, _countof(vsShaderResources), vsShaderResources);
 
         for (const Pbr::Primitive& primitive : m_primitives)
         {
             if (primitive.GetMaterial()->Hidden) continue;
-
             primitive.GetMaterial()->SetWireframe(pbrResources.GetFillMode() == FillMode::Wireframe);
-            primitive.GetMaterial()->Bind(context, pbrResources);
-            primitive.Render(context);
+            primitive.GetMaterial()->Bind(pbrResources);
+            primitive.Render();
         }
-
+        bgfx::frame();
         // Expect the caller to reset other state, but the geometry shader is cleared specially.
         //context->GSSetShader(nullptr, nullptr, 0);
     }
@@ -105,51 +112,59 @@ namespace Pbr
         m_primitives.push_back(std::move(primitive));
     }
 
-    void Model::UpdateTransforms(Pbr::Resources const& pbrResources, _In_ ID3D11DeviceContext* context) const
-    {
-        const uint32_t newTotalModifyCount = std::accumulate(
-            m_nodes.begin(),
-            m_nodes.end(),
-            0,
-            [](uint32_t sumChangeCount, const Node& node) { return sumChangeCount + node.m_modifyCount; });
+    void Model::UpdateTransforms(Pbr::Resources const& pbrResources) const {
+        const uint32_t newTotalModifyCount =
+            std::accumulate(m_nodes.begin(), m_nodes.end(), 0, [](uint32_t sumChangeCount, const Node& node) {
+                return sumChangeCount + node.m_modifyCount;
+            });
 
         // If none of the node transforms have changed, no need to recompute/update the model transform structured buffer.
-        if (newTotalModifyCount != TotalModifyCount || m_modelTransformsStructuredBuffer == nullptr)
-        {
+        if (newTotalModifyCount != TotalModifyCount || m_modelTransformsStructuredBuffer == nullptr) {
             if (m_modelTransformsStructuredBuffer == nullptr) // The structured buffer is reset when a Node is added.
             {
                 m_modelTransforms.resize(m_nodes.size());
 
                 // Create/recreate the structured buffer and SRV which holds the node transforms.
                 // Use Usage=D3D11_USAGE_DYNAMIC and CPUAccessFlags=D3D11_CPU_ACCESS_WRITE with Map/Unmap instead?
-                D3D11_BUFFER_DESC desc{};
+                /*D3D11_BUFFER_DESC desc{};
                 desc.Usage = D3D11_USAGE_DEFAULT;
                 desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
                 desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
                 desc.StructureByteStride = sizeof(decltype(m_modelTransforms)::value_type);
-                desc.ByteWidth = (UINT)(m_modelTransforms.size() * desc.StructureByteStride);
-                m_modelTransformsStructuredBuffer = nullptr;
-                Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateBuffer(&desc, nullptr, m_modelTransformsStructuredBuffer.put()));
+                desc.ByteWidth = (UINT)(m_modelTransforms.size() * desc.StructureByteStride);*/
+                const uint32_t numInstances = 121;
+                bgfx::allocInstanceDataBuffer(m_modelTransformsStructuredBuffer.get(), numInstances, sizeof(decltype(m_modelTransforms)::value_type));
 
-                D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+
+
+               // Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateBuffer(&desc, nullptr, m_modelTransformsStructuredBuffer.put()));
+
+
+                /*D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+                bgfx::setInstanceDataBuffer(&m_modelTransformsStructuredBuffer);
                 srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
                 srvDesc.Buffer.NumElements = (UINT)m_modelTransforms.size();
                 srvDesc.Buffer.ElementWidth = (UINT)m_modelTransforms.size();
                 m_modelTransformsResourceView = nullptr;
-                Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateShaderResourceView(m_modelTransformsStructuredBuffer.get(), &srvDesc, m_modelTransformsResourceView.put()));
+                Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateShaderResourceView(
+                    m_modelTransformsStructuredBuffer.get(), &srvDesc, m_modelTransformsResourceView.put()));*/
             }
-
-            // Nodes are guaranteed to come after their parents, so each node transform can be multiplied by its parent transform in a single pass.
+            //m_modelTransforms = (std::vector<DirectX::XMFLOAT4X4>)m_modelTransformsStructuredBuffer.data;
+            // Nodes are guaranteed to come after their parents, so each node transform can be multiplied by its parent transform in a
+            // single pass.
             assert(m_nodes.size() == m_modelTransforms.size());
-            for (const auto& node : m_nodes)
-            {
+            for (const auto& node : m_nodes) {
                 assert(node.ParentNodeIndex == RootParentNodeIndex || node.ParentNodeIndex < node.Index);
-                const XMMATRIX parentTransform = (node.ParentNodeIndex == RootParentNodeIndex) ? XMMatrixIdentity() : XMLoadFloat4x4(&m_modelTransforms[node.ParentNodeIndex]);
+                const XMMATRIX parentTransform = (node.ParentNodeIndex == RootParentNodeIndex)
+                                                     ? XMMatrixIdentity()
+                                                     : XMLoadFloat4x4(&m_modelTransforms[node.ParentNodeIndex]);
+                
                 XMStoreFloat4x4(&m_modelTransforms[node.Index], XMMatrixMultiply(parentTransform, XMMatrixTranspose(node.GetTransform())));
             }
-
+            m_modelTransformsStructuredBuffer.get()->data = (uint8_t*) m_modelTransforms.data();
             // Update node transform structured buffer.
-            context->UpdateSubresource(m_modelTransformsStructuredBuffer.get(), 0, nullptr, this->m_modelTransforms.data(), 0, 0);
+            //context->UpdateSubresource(m_modelTransformsStructuredBuffer.get(), 0, nullptr, this->m_modelTransforms.data(), 0, 0);
+            bgfx::setInstanceDataBuffer(m_modelTransformsStructuredBuffer.get());
             TotalModifyCount = newTotalModifyCount;
         }
     }
