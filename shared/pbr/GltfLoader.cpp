@@ -13,12 +13,12 @@ using namespace DirectX;
 
 namespace {
     // Create a DirectX texture view from a tinygltf Image.
-    UniqueBgfxHandle<bgfx::TextureHandle> LoadImage(const tinygltf::Image& image, bool sRGB) {
+    unique_bgfx_handle<bgfx::TextureHandle> LoadImage(const tinygltf::Image& image, bool sRGB) {
         // First convert the image to RGBA if it isn't already.
         std::vector<uint8_t> tempBuffer;
         const uint8_t* rgbaBuffer = GltfHelper::ReadImageAsRGBA(image, &tempBuffer);
         if (rgbaBuffer == nullptr) {
-            return UniqueBgfxHandle(nullptr);
+            return unique_bgfx_handle(nullptr);
         }
 
         const DXGI_FORMAT format = sRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -62,7 +62,7 @@ namespace {
     }
 
     // Create a Bgfx sampler state from a tinygltf Sampler.
-    UniqueBgfxHandle<bgfx::UniformHandle> CreateSampler(const char * _name, const tinygltf::Model& gltfModel,
+    unique_bgfx_handle<bgfx::UniformHandle> CreateSampler(const char * _name, const tinygltf::Model& gltfModel,
                                                      const tinygltf::Sampler& sampler) {
         // Seyi NOTE: I should be giving all this information to the texture being created
 
@@ -83,7 +83,7 @@ namespace {
         samplerDesc.MinLOD = 0;
         samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;*/
 
-        UniqueBgfxHandle<bgfx::UniformHandle> samplerState = UniqueBgfxHandle(bgfx::createUniform(_name,bgfx::UniformType::Sampler));
+        unique_bgfx_handle<bgfx::UniformHandle> samplerState = unique_bgfx_handle(bgfx::createUniform(_name,bgfx::UniformType::Sampler));
         //Pbr::Internal::ThrowIfFailed(device->CreateSamplerState(&samplerDesc, samplerState.put()));
         return samplerState;
     }
@@ -177,8 +177,8 @@ namespace Gltf {
         {
             // Create D3D cache for reuse of texture views and samplers when possible.
             using ImageKey = std::tuple<const tinygltf::Image*, bool>; // Item1 is a pointer to the image, Item2 is sRGB.
-            std::map<ImageKey, UniqueBgfxHandle<bgfx::TextureHandle>> imageMap;
-            std::map<const tinygltf::Sampler*, UniqueBgfxHandle<bgfx::UniformHandle>> samplerMap;
+            std::map<ImageKey, unique_bgfx_handle<bgfx::TextureHandle>> imageMap;
+            std::map<const tinygltf::Sampler*, unique_bgfx_handle<bgfx::UniformHandle>> samplerMap;
 
             // primitiveBuilderMap is grouped by material. Loop through the referenced materials and load their resources. This will only
             // load materials which are used by the active scene.
@@ -204,19 +204,18 @@ namespace Gltf {
                                            Pbr::RGBAColor defaultRGBA) {
                         // Find or load the image referenced by the texture.
                         const ImageKey imageKey = std::make_tuple(texture.Image, sRGB);
-                        UniqueBgfxHandle<bgfx::TextureHandle> textureView = imageMap[imageKey];
-                        if (!textureView) // If not cached, load the image and store it in the texture cache.
+                        if (!imageMap[imageKey]) // If not cached, load the image and store it in the texture cache.
                         {
                             // TODO: Generate mipmaps if sampler's minification filter (minFilter) uses mipmapping.
                             // TODO: If texture is not power-of-two and (sampler has wrapping=repeat/mirrored_repeat OR minFilter uses
                             // mipmapping), resize to power-of-two.
-                            textureView = texture.Image != nullptr ? LoadImage(*texture.Image, sRGB)
+                            auto textureView = texture.Image != nullptr ? LoadImage(*texture.Image, sRGB)
                                                                    : pbrResources.CreateSolidColorTexture(defaultRGBA);
-                            imageMap[imageKey] = textureView;
+                            imageMap[imageKey] = std::move(textureView);
                         }
 
                         // Find or create the sampler referenced by the texture.
-                        UniqueBgfxHandle<bgfx::UniformHandle> samplerState = UniqueBgfxHandle(samplerMap[texture.Sampler]);
+                        unique_bgfx_handle<bgfx::UniformHandle> samplerState = unique_bgfx_handle(samplerMap[texture.Sampler]);
                         if (!samplerState) // If not cached, create the sampler and store it in the sampler cache.
                         {
                             samplerState = texture.Sampler != nullptr

@@ -19,6 +19,7 @@
 #include <d3dcommon.h>  //ID3DBlob
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrExtensionContext.h>
+#include <wil/resource.h>
 #include <bgfx/bgfx.h>
 
 #include <bgfx/platform.h>
@@ -26,32 +27,11 @@
 #include <bx/uint32_t.h>
 #include "bgfx_utils.h"
 
-template <typename HandleType>
-class UniqueBgfxHandle {
-public:
-    UniqueBgfxHandle() = default;
-    explicit UniqueBgfxHandle(HandleType handle)
-        : m_handle(handle) {
-    }
-    UniqueBgfxHandle(const UniqueBgfxHandle&) = delete;
-    UniqueBgfxHandle(UniqueBgfxHandle&& other) noexcept;
+template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType), close_fn_t close_fn = ::bgfx::destroy>
+using unique_bgfx_handle = wil::unique_any<BgfxHandleType, close_fn_t, close_fn, wil::details::pointer_access_all, BgfxHandleType, decltype(::bgfx::kInvalidHandle), ::bgfx::kInvalidHandle, BgfxHandleType>;
 
-    ~UniqueBgfxHandle() noexcept {
-        Reset();
-    }
-
-    UniqueBgfxHandle& operator=(const UniqueBgfxHandle&) = delete;
-    UniqueBgfxHandle& operator=(UniqueBgfxHandle&& other) noexcept;
-
-    HandleType Get() const noexcept;
-
-    HandleType* Put() noexcept;
-
-    void Reset() noexcept;
-
-private:
-    HandleType m_handle{bgfx::kInvalidHandle};
-};
+template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType), close_fn_t close_fn = ::bgfx::destroy>
+using shared_bgfx_handle = wil::shared_any<unique_bgfx_handle<BgfxHandleType, close_fn_t, close_fn>>;
 
 namespace sample::bg {
     bgfx::TextureFormat::Enum DxgiFormatToBgfxFormat(DXGI_FORMAT format);

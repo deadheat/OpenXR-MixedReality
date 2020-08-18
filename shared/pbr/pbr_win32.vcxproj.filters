@@ -42,6 +42,7 @@
     <None Include="Shaders\Shared.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -50,10 +51,5 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{42dd56b0-5d6b-4bb1-9219-15b8d3954fe5}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="brdf_lut.png">
-      <Filter>Resources</Filter>
-    </Image>
   </ItemGroup>
 </Project>

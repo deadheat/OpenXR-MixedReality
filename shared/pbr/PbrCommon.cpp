@@ -251,7 +251,7 @@ namespace Pbr {
             return std::array<uint8_t, 4>{(uint8_t)colorf.x, (uint8_t)colorf.y, (uint8_t)colorf.z, (uint8_t)colorf.w};
         }
 
-        UniqueBgfxHandle<bgfx::TextureHandle> LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData,
+        unique_bgfx_handle<bgfx::TextureHandle> LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData,
                                                                   uint32_t fileSize) {
             auto freeImageData = [](unsigned char* ptr) { ::free(ptr); };
             using stbi_unique_ptr = std::unique_ptr<unsigned char, decltype(freeImageData)>;
@@ -272,14 +272,14 @@ namespace Pbr {
                                  sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
         }
 
-        UniqueBgfxHandle<bgfx::TextureHandle> CreateFlatCubeTexture(RGBAColor color,
+        unique_bgfx_handle<bgfx::TextureHandle> CreateFlatCubeTexture(RGBAColor color,
                                                                        bgfx::TextureFormat::Enum format) {
             
             
             // Each side is a 1x1 pixel (RGBA) image.
             const std::array<uint8_t, 4> rgbaColor = LoadRGBAUI4(color);
-            UniqueBgfxHandle<bgfx::TextureHandle> textureView;
-            textureView = UniqueBgfxHandle(bgfx::createTextureCube(1 /*_size*/,
+            unique_bgfx_handle<bgfx::TextureHandle> textureView;
+            textureView = unique_bgfx_handle(bgfx::createTextureCube(1 /*_size*/,
                                         true /*bool _hasMips*/,
                                         6 /*_numLayers*/,
                                         format,
@@ -288,14 +288,14 @@ namespace Pbr {
             return textureView;
         }
 
-        UniqueBgfxHandle<bgfx::TextureHandle>
+        unique_bgfx_handle<bgfx::TextureHandle>
         CreateTexture(_In_reads_bytes_(size) const uint8_t* rgba,
                                                                uint32_t size,
                                                                int width,
                                                                int height,
                                                                bgfx::TextureFormat::Enum format) {
-            UniqueBgfxHandle<bgfx::TextureHandle> textureView;
-            textureView = UniqueBgfxHandle(bgfx::createTexture2D(width,
+            unique_bgfx_handle<bgfx::TextureHandle> textureView;
+            textureView = unique_bgfx_handle(bgfx::createTexture2D(width,
                                   height,
                                   true/*_hasMips*/,
                                   1 /*_numLayers*/,
@@ -306,10 +306,10 @@ namespace Pbr {
         }
         
         //from what I can tell this is handled internally in bgfx, but I could be wrong
-        UniqueBgfxHandle<bgfx::UniformHandle> CreateSampler(const char* _uniqueName) {
+        unique_bgfx_handle<bgfx::UniformHandle> CreateSampler(const char* _uniqueName) {
             bgfx::UniformHandle sampler = bgfx::createUniform(_uniqueName, bgfx::UniformType::Sampler);
-            UniqueBgfxHandle<bgfx::UniformHandle> samplerState;
-            samplerState = UniqueBgfxHandle(sampler);
+            unique_bgfx_handle<bgfx::UniformHandle> samplerState;
+            samplerState = unique_bgfx_handle(sampler);
             return samplerState;
         }
     } // namespace Texture
