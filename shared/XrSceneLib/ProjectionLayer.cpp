@@ -299,7 +299,7 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
                 DirectX::XMMATRIX worldToViewMatrix = xr::math::LoadInvertedXrPose(projectionViews[viewIndex].pose);
 
                 sceneContext.PbrResources.SetViewProjection(worldToViewMatrix, projectionMatrix);
-                sceneContext.PbrResources.Bind(sceneContext.DeviceContext.get());
+                sceneContext.PbrResources.Bind();
                 sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
 
                 // Render all active scenes.

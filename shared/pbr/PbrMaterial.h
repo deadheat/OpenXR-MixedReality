@@ -39,7 +39,7 @@ namespace Pbr {
         static_assert((sizeof(ConstantBufferData) % 16) == 0, "Constant Buffer must be divisible by 16 bytes");
 
         // Create a uninitialized material. Textures and shader coefficients must be set.
-        Material(Pbr::Resources const& pbrResources);
+        Material();
 
         // Create a clone of this material.
         std::shared_ptr<Material> Clone(Pbr::Resources const& pbrResources) const;
@@ -76,6 +76,10 @@ namespace Pbr {
         bool m_alphaBlended{false};
         bool m_doubleSided{false};
         bool m_wireframe{false};
+
+        bgfx::UniformHandle m_baseColorFactor;
+        bgfx::UniformHandle m_metallicRoughnessNormalOcclusion;
+        bgfx::UniformHandle m_emissiveAlphaCutoff;
 
         static constexpr size_t TextureCount = ShaderSlots::LastMaterialSlot + 1;
         std::array<winrt::com_ptr<bgfx::TextureHandle>, TextureCount> m_textures;

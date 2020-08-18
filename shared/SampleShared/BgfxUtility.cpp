@@ -23,52 +23,6 @@
 
 
 
-template <typename HandleType>
-class UniqueBgfxHandle {
-public:
-    UniqueBgfxHandle() = default;
-    explicit UniqueBgfxHandle(HandleType handle)
-        : m_handle(handle) {
-    }
-    //UniqueBgfxHandle(const UniqueBgfxHandle&) = delete;
-    UniqueBgfxHandle(UniqueBgfxHandle&& other) noexcept {
-        *this = std::move(other);
-    }
-
-    ~UniqueBgfxHandle() noexcept {
-        Reset();
-    }
-
-    //UniqueBgfxHandle& operator=(const UniqueBgfxHandle&) = delete;
-    UniqueBgfxHandle& operator=(UniqueBgfxHandle&& other) noexcept {
-        if (m_handle.idx != other.m_handle.idx) {
-            Reset();
-
-            m_handle = other.m_handle;
-            other.m_handle = {bgfx::kInvalidHandle};
-        }
-        return *this;
-    }
-
-    HandleType Get() const noexcept {
-        return m_handle;
-    }
-
-    HandleType* Put() noexcept {
-        Reset();
-        return &m_handle;
-    }
-
-    void Reset() noexcept {
-        if (bgfx::isValid(m_handle)) {
-            bgfx::destroy(m_handle);
-            m_handle = {bgfx::kInvalidHandle};
-        }
-    }
-
-private:
-    HandleType m_handle{bgfx::kInvalidHandle};
-};
 namespace sample::bg {
     enum class RendererType {
         D3D11,

@@ -15,12 +15,13 @@
 //*********************************************************
 #include "pch.h"
 #include "FileUtility.h"
-#include "DirectXTK/DDSTextureLoader.h"
+//#include "DirectXTK/DDSTextureLoader.h"
 #include <pbr/GltfLoader.h>
 #include <pbr/PbrModel.h>
 #include <fstream>
 #include <XrUtility/XrString.h>
 #include "Trace.h"
+#include <SampleShared/BgfxUtility.h>
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
@@ -92,8 +93,8 @@ namespace sample {
         return "";
     }
 
-    Pbr::Resources InitializePbrResources(ID3D11Device* device, bool environmentIBL) {
-        Pbr::Resources pbrResources(device);
+    Pbr::Resources InitializePbrResources( bool environmentIBL) {
+        Pbr::Resources pbrResources = Pbr::Resources();
 
         // Set up a light source (an image-based lighting environment map will also be loaded and contribute to the scene lighting).
         pbrResources.SetLight({0.0f, 0.7071067811865475f, 0.7071067811865475f}, Pbr::RGB::White);
@@ -104,24 +105,33 @@ namespace sample {
             Pbr::Texture::LoadTextureImage(brdfLutFileData.data(), (uint32_t)brdfLutFileData.size());
         pbrResources.SetBrdfLut(brdLutResourceView.get());
 
-        winrt::com_ptr<ID3D11ShaderResourceView> diffuseTextureView;
-        winrt::com_ptr<ID3D11ShaderResourceView> specularTextureView;
-
+        winrt::com_ptr<bgfx::TextureHandle> diffuseTextureView;
+        winrt::com_ptr<bgfx::TextureHandle> specularTextureView;
+        std::map<std::string, bgfx::TextureInfo> textureInformation;
         if (environmentIBL) {
-            CHECK_HRCMD(DirectX::CreateDDSTextureFromFile(device,
+            
+            diffuseTextureView.copy_from(&loadTexture(FindFileInAppFolder(L"Sample_DiffuseHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
+                                                      NULL,
+                                                      NULL,
+                                                      &textureInformation["diffuseTextureView"]));
+            specularTextureView.copy_from(&loadTexture(FindFileInAppFolder(L"Sample_SpecularHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
+                                                       NULL,
+                                                       NULL,
+                                                       &textureInformation["specularTextureView"]));
+           /* CHECK_HRCMD(DirectX::CreateDDSTextureFromFile(device,
                                                           FindFileInAppFolder(L"Sample_DiffuseHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
                                                           nullptr,
                                                           diffuseTextureView.put()));
             CHECK_HRCMD(DirectX::CreateDDSTextureFromFile(device,
                                                           FindFileInAppFolder(L"Sample_SpecularHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
                                                           nullptr,
-                                                          specularTextureView.put()));
+                                                          specularTextureView.put()));*/
         } else {
             diffuseTextureView = Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White);
             specularTextureView = Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White);
         }
 
-        pbrResources.SetEnvironmentMap(specularTextureView.get(), diffuseTextureView.get());
+        pbrResources.SetEnvironmentMap(specularTextureView.get(), diffuseTextureView.get(), textureInformation);
 
         return pbrResources;
     }

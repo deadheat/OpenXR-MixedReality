@@ -41,13 +41,7 @@ namespace Pbr {
 
     protected:
         friend struct Model;
-        void Render(const XrRect2Di& imageRect,
-                               const float renderTargetClearColor[4],
-                               const std::vector<xr::math::ViewProjection>& viewProjections,
-                               DXGI_FORMAT colorSwapchainFormat,
-                               void* colorTexture,
-                               DXGI_FORMAT depthSwapchainFormat,
-                               void* depthTexture) const;
+        void Render() const;
         Primitive Clone(Pbr::Resources const& pbrResources) const;
 
     private:

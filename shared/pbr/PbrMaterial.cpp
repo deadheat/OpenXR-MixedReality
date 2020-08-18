@@ -5,15 +5,20 @@
 #include "PbrCommon.h"
 #include "PbrResources.h"
 #include "PbrMaterial.h"
-
+#include <SampleShared/BgfxUtility.h>
 using namespace DirectX;
 
+
+
 namespace Pbr {
-    Material::Material(Pbr::Resources const& pbrResources) {
+    Material::Material() {
         //const CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ConstantBufferData), D3D11_BIND_CONSTANT_BUFFER);
+        bgfx::createUniform("u_baseColorFactor", bgfx::UniformType::Vec4);
+        bgfx::createUniform("u_metallicRoughnessNormalOcclusion", bgfx::UniformType::Vec4);
+        bgfx::createUniform("u_emissiveAlphaCutoff", bgfx::UniformType::Vec4);
 
         //Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_constantBuffer.put()));
-        m_constantBuffer = bgfx::createUniform("ConstantBufferData", bgfx::UniformType::Count, sizeof(ConstantBufferData)) 
+        //m_constantBuffer = bgfx::createUniform("ConstantBufferData", bgfx::UniformType::Count, sizeof(ConstantBufferData)) 
     }
 
     std::shared_ptr<Material> Material::Clone(Pbr::Resources const& pbrResources) const {
@@ -25,6 +30,9 @@ namespace Pbr {
         clone->m_samplers = m_samplers;
         clone->m_alphaBlended = m_alphaBlended;
         clone->m_doubleSided = m_doubleSided;
+        clone->m_baseColorFactor = m_baseColorFactor;
+        clone->m_metallicRoughnessNormalOcclusion = m_metallicRoughnessNormalOcclusion;
+        clone->m_emissiveAlphaCutoff = m_emissiveAlphaCutoff;
         return clone;
     }
 
@@ -46,6 +54,8 @@ namespace Pbr {
         parameters.MetallicFactor = metallicFactor;
         parameters.RoughnessFactor = roughnessFactor;
 
+
+        // Seyi NOTE: I dont think this is putting the right samplers in place, should modify later
         const winrt::com_ptr <bgfx::UniformHandle> defaultSampler = Pbr::Texture::CreateSampler("defaultSampler");
         material->SetTexture(ShaderSlots::BaseColor, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
         material->SetTexture(ShaderSlots::MetallicRoughness, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
@@ -82,29 +92,51 @@ namespace Pbr {
 
     void Material::Bind(const Resources& pbrResources) const {
         // If the parameters of the constant buffer have changed, update the constant buffer.
+        float* baseColorFactor = (float*) &m_parameters.BaseColorFactor;
+        float metallicRoughnessNormalOcclusion[] = {
+            m_parameters.MetallicFactor,
+            m_parameters.RoughnessFactor,
+            m_parameters.NormalScale,
+            m_parameters.OcclusionStrength,
+        };
+        float* emissiveAlphaCutoff = {(float*)&m_parameters.EmissiveFactor};
+        emissiveAlphaCutoff[3] = m_parameters.AlphaCutoff;
+        // Seyi NOTE: This block of code may be irrelevant because I dont think theres a differnce in updating a uniforma and setting a uniform
         if (m_parametersChanged) {
             m_parametersChanged = false;
-            setUniform(m_constantBuffer.get(), &m_parameters, sizeof(m_parameters));
+            
             //context->UpdateSubresource(m_constantBuffer.get(), 0, nullptr, &m_parameters, 0, 0);
         }
 
-        pbrResources.SetBlendState(m_alphaBlended);
-        pbrResources.SetDepthStencilState(m_alphaBlended);
-        pbrResources.SetRasterizerState(m_doubleSided, m_wireframe);
+        // In bgfx all the state is set at once and not broken up
+        pbrResources.SetState(m_alphaBlended, m_alphaBlended, m_doubleSided, m_wireframe);
+        
 
-        setUniform(m_constantBuffer.get(), &m_parameters, sizeof(m_parameters));
+        //pbrResources.SetBlendState(m_alphaBlended);
+        //pbrResources.SetDepthStencilState(m_alphaBlended);
+        //pbrResources.SetRasterizerState(m_doubleSided, m_wireframe);
+
+        bgfx::setUniform(m_baseColorFactor, &baseColorFactor);
+        bgfx::setUniform(m_metallicRoughnessNormalOcclusion, &metallicRoughnessNormalOcclusion);
+        bgfx::setUniform(m_emissiveAlphaCutoff, &emissiveAlphaCutoff);
+
         //context->PSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Material, 1, psConstantBuffers);
         //static_assert(Pbr::ShaderSlots::BaseColor == 0, "BaseColor must be the first slot");
 
         std::array < bgfx::TextureHandle*, TextureCount > textures;
         std::transform(m_textures.begin(), m_textures.end(), textures.begin(), [](const auto& texture) { return texture.get(); });
-        setUniform(textures[0], textures.data(), (UINT)textures.size());
-        //context->PSSetShaderResources(Pbr::ShaderSlots::BaseColor, (UINT)textures.size(), textures.data()  );
-
         std::array<bgfx::UniformHandle*, TextureCount> samplers;
         std::transform(m_samplers.begin(), m_samplers.end(), samplers.begin(), [](const auto& sampler) { return sampler.get(); });
-        setUniform(samplers[0], samplers.data(), (UINT)samplers.size());
+        for (int i = 0; i < samplers.size(); i++) {
+            bgfx::setTexture(i, *samplers[i], *textures[i]);
+        }
+        //setUniform(textures[0], textures.data(), (UINT)textures.size());
+        //context->PSSetShaderResources(Pbr::ShaderSlots::BaseColor, (UINT)textures.size(), textures.data()  );
+
+        
+        //setUniform(samplers[0], samplers.data(), (UINT)samplers.size());
         //context->PSSetSamplers(Pbr::ShaderSlots::BaseColor, (UINT)samplers.size(), samplers.data());
+        pbrResources.SubmitProgram();
     }
 
     Material::ConstantBufferData& Material::Parameters() {

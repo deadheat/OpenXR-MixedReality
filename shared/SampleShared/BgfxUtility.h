@@ -24,7 +24,7 @@
 #include <bgfx/platform.h>
 
 #include <bx/uint32_t.h>
-
+#include "bgfx_utils.h"
 
 template <typename HandleType>
 class UniqueBgfxHandle {

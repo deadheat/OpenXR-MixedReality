@@ -265,27 +265,26 @@ namespace Pbr {
                 throw std::exception("Failed to load image file data.");
             }
 
-            return CreateTexture(device,
-                                 rgbaData.get(),
+            return CreateTexture(rgbaData.get(),
                                  w * h * DesiredComponentCount,
                                  w,
                                  h,
                                  sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
         }
 
-        winrt::com_ptr<ID3D11ShaderResourceView> CreateFlatCubeTexture(RGBAColor color,
+        winrt::com_ptr<bgfx::TextureHandle> CreateFlatCubeTexture(RGBAColor color,
                                                                        bgfx::TextureFormat::Enum format) {
             
             
             // Each side is a 1x1 pixel (RGBA) image.
             const std::array<uint8_t, 4> rgbaColor = LoadRGBAUI4(color);
-            winrt::com_ptr<bgfx::TextureHandle> textureView(
-                bgfx::createTextureCube(1 /*_size*/,
+            winrt::com_ptr<bgfx::TextureHandle> textureView;
+            textureView.copy_from(&bgfx::createTextureCube(1 /*_size*/,
                                         true /*bool _hasMips*/,
                                         6 /*_numLayers*/,
                                         format,
-                                        uint64_t _flags = BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE | BGFX_CAPS_TEXTURE_CUBE_ARRAY,
-                                        &rgbaColor /*constMemory* _mem = NULL*/));
+                                        /*uint64_t _flags = */BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE | BGFX_CAPS_TEXTURE_CUBE_ARRAY,
+                                        bgfx::makeRef(&rgbaColor, sizeof(rgbaColor) /*constMemory* _mem = NULL*/)));
             return textureView;
         }
 
@@ -295,13 +294,13 @@ namespace Pbr {
                                                                int height,
                                                                bgfx::TextureFormat::Enum format) {
             winrt::com_ptr<bgfx::TextureHandle> textureView;
-            textureView.copy_from(bgfx::createTexture2D(width,
+            textureView.copy_from(&bgfx::createTexture2D(width,
                                   height,
                                   true/*_hasMips*/,
                                   1 /*_numLayers*/,
                                   format /*TextureFormat::Enum_format*/,
-                                  uint64_t _flags = BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE,
-                                  rgba /*constMemory* _mem = NULL*/));
+                                  /*uint64_t _flags = */BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE,
+                                  bgfx::makeRef(rgba , sizeof(rgba))));
             return textureView;
         }
         
@@ -309,7 +308,7 @@ namespace Pbr {
         winrt::com_ptr<bgfx::UniformHandle> CreateSampler(const char* _uniqueName) {
             bgfx::UniformHandle sampler = bgfx::createUniform(_uniqueName, bgfx::UniformType::Sampler);
             winrt::com_ptr<bgfx::UniformHandle> samplerState;
-            samplerState.copy_from(sampler);
+            samplerState.copy_from(&sampler);
             return samplerState;
         }
     } // namespace Texture
