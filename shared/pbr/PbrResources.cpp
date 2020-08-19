@@ -5,7 +5,6 @@
 #include "PbrCommon.h"
 #include "PbrResources.h"
 #include "PbrMaterial.h"
-
 #include <PbrPixelShader.h>
 #include <PbrVertexShader.h>
 #include <HighlightPixelShader.h>
@@ -67,7 +66,7 @@ namespace Pbr {
                 .end();
             // Set up pixel shader.
             bgfx::RendererType::Enum type = bgfx::RendererType::Direct3D11;
-            Resources.PbrPixelShader = UniqueBgfxHandle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrPixelShader")));
+            Resources.PbrPixelShader = UniqueBgfxHandle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrPixelShader"));
             
             Resources.HighlightPixelShader = UniqueBgfxHandle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightPixelShader"));
 
