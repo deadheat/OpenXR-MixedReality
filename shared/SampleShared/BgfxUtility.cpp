@@ -23,7 +23,12 @@
 
 
 
+
+
+
+
 namespace sample::bg {
+
     enum class RendererType {
         D3D11,
         D3D12,

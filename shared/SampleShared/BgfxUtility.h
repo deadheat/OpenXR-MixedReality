@@ -20,40 +20,18 @@
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrExtensionContext.h>
 #include <bgfx/bgfx.h>
-
+#include "BgfxHandle.h"
 #include <bgfx/platform.h>
 
 #include <bx/uint32_t.h>
 #include "bgfx_utils.h"
 
-template <typename HandleType>
-class UniqueBgfxHandle {
-public:
-    UniqueBgfxHandle() = default;
-    explicit UniqueBgfxHandle(HandleType handle)
-        : m_handle(handle) {
-    }
-    UniqueBgfxHandle(const UniqueBgfxHandle&) = delete;
-    UniqueBgfxHandle(UniqueBgfxHandle&& other) noexcept;
 
-    ~UniqueBgfxHandle() noexcept {
-        Reset();
-    }
 
-    UniqueBgfxHandle& operator=(const UniqueBgfxHandle&) = delete;
-    UniqueBgfxHandle& operator=(UniqueBgfxHandle&& other) noexcept;
 
-    HandleType Get() const noexcept;
-
-    HandleType* Put() noexcept;
-
-    void Reset() noexcept;
-
-private:
-    HandleType m_handle{bgfx::kInvalidHandle};
-};
 
 namespace sample::bg {
+
     bgfx::TextureFormat::Enum DxgiFormatToBgfxFormat(DXGI_FORMAT format);
     winrt::com_ptr<IDXGIAdapter1> GetAdapter(LUID adapterId);
 

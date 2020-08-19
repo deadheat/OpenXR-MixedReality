@@ -109,12 +109,12 @@ namespace sample {
         std::map<std::string, bgfx::TextureInfo> textureInformation;
         if (environmentIBL) {
             
-            diffuseTextureView = UniqueBgfxHandle(loadTexture(FindFileInAppFolder(L"Sample_DiffuseHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
+            diffuseTextureView = UniqueBgfxHandle<bgfx::TextureHandle>(loadTexture(FindFileInAppFolder(L"Sample_DiffuseHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
                                                       NULL,
                                                       NULL,
                                                       &textureInformation["diffuseTextureView"]));
-            specularTextureView =
-                UniqueBgfxHandle(loadTexture(FindFileInAppFolder(L"Sample_SpecularHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
+            specularTextureView = UniqueBgfxHandle<bgfx::TextureHandle>(
+                loadTexture(FindFileInAppFolder(L"Sample_SpecularHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
                                                        NULL,
                                                        NULL,
                                                        &textureInformation["specularTextureView"]));
