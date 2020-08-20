@@ -8,6 +8,14 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pbr_uwp", "shared\pbr\pbr_uwp.vcxproj", "{334E53B6-28DC-4F46-A7D9-CCEC681F4FEB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{1DCE4CA8-2962-4E73-ACC8-9A460DC7C2C0}"
+	ProjectSection(SolutionItems) = preProject
+		shared\SampleShared\bgfx_utils.cpp = shared\SampleShared\bgfx_utils.cpp
+		shared\SampleShared\bgfx_utils.h = shared\SampleShared\bgfx_utils.h
+		shared\SampleShared\BgfxHandle.cpp = shared\SampleShared\BgfxHandle.cpp
+		shared\SampleShared\BgfxHandle.h = shared\SampleShared\BgfxHandle.h
+		shared\SampleShared\BgfxUtility.cpp = shared\SampleShared\BgfxUtility.cpp
+		shared\SampleShared\BgfxUtility.h = shared\SampleShared\BgfxUtility.h
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "XrSceneLib_uwp", "shared\XrSceneLib\XrSceneLib_uwp.vcxproj", "{56F1C3F4-8AB3-4518-9671-AA4219F56167}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -28,6 +36,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pbr", "pbr", "{5CBE3AE5-D53F-40E2-9380-F6348A569040}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sampleShared", "sampleShared", "{279ABC91-3426-45B0-8876-113A48B7FB34}"
+	ProjectSection(SolutionItems) = preProject
+		shared\SampleShared\bgfx_utils.cpp = shared\SampleShared\bgfx_utils.cpp
+		shared\SampleShared\bgfx_utils.h = shared\SampleShared\bgfx_utils.h
+		shared\SampleShared\BgfxHandle.cpp = shared\SampleShared\BgfxHandle.cpp
+		shared\SampleShared\BgfxHandle.h = shared\SampleShared\BgfxHandle.h
+		shared\SampleShared\BgfxUtility.cpp = shared\SampleShared\BgfxUtility.cpp
+		shared\SampleShared\BgfxUtility.h = shared\SampleShared\BgfxUtility.h
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "XrUtility", "XrUtility", "{AF0F6DD8-1BC3-4818-919E-9B239B544B5E}"
 	ProjectSection(SolutionItems) = preProject
