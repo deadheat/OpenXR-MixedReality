@@ -60,10 +60,10 @@ namespace Pbr {
         material->SetTexture(ShaderSlots::BaseColor, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
         material->SetTexture(ShaderSlots::MetallicRoughness, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
         // No occlusion.
-        material->SetTexture(ShaderSlots::Occlusion, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
+        material->SetTexture(ShaderSlots::Occlusion, &pbrResources.CreateSolidColorTexture(RGBA::White).Get(), &defaultSampler.Get());
         // Flat normal.
-        material->SetTexture(ShaderSlots::Normal, pbrResources.CreateSolidColorTexture(RGBA::FlatNormal).get(), defaultSampler.get());
-        material->SetTexture(ShaderSlots::Emissive, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
+        material->SetTexture(ShaderSlots::Normal,&pbrResources.CreateSolidColorTexture(RGBA::FlatNormal).Get(), &defaultSampler.Get());
+        material->SetTexture(ShaderSlots::Emissive, &pbrResources.CreateSolidColorTexture(RGBA::White).Get(), &defaultSampler.Get());
 
         return material;
     }
@@ -71,10 +71,10 @@ namespace Pbr {
     void Material::SetTexture(ShaderSlots::PSMaterial slot,
                               _In_ bgfx::TextureHandle* textureView,
                               _In_opt_ bgfx::UniformHandle* sampler) {
-        m_textures[slot].copy_from(textureView);
+        m_textures[slot] = UniqueBgfxHandle(*textureView);
 
         if (sampler) {
-            m_samplers[slot].copy_from(sampler);
+            m_samplers[slot] = UniqueBgfxHandle(*sampler);
         }
     }
 

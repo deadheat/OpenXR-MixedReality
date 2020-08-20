@@ -60,7 +60,7 @@ namespace Pbr
         }
 
         m_nodes.emplace_back(transform, std::move(name), newNodeIndex, parentIndex);
-        m_modelTransformsStructuredBuffer = nullptr; // Structured buffer will need to be recreated.
+        m_modelTransformsStructuredBuffer =std::move(UniqueBgfxHandle<bgfx::InstanceDataBuffer>()); // Structured buffer will need to be recreated.
         return m_nodes.back().Index;
     }
 
@@ -119,8 +119,8 @@ namespace Pbr
             });
 
         // If none of the node transforms have changed, no need to recompute/update the model transform structured buffer.
-        if (newTotalModifyCount != TotalModifyCount || m_modelTransformsStructuredBuffer == nullptr) {
-            if (m_modelTransformsStructuredBuffer == nullptr) // The structured buffer is reset when a Node is added.
+        if (newTotalModifyCount != TotalModifyCount || !m_modelTransformsStructuredBuffer) {
+            if (!m_modelTransformsStructuredBuffer) // The structured buffer is reset when a Node is added.
             {
                 m_modelTransforms.resize(m_nodes.size());
 
@@ -133,7 +133,7 @@ namespace Pbr
                 desc.StructureByteStride = sizeof(decltype(m_modelTransforms)::value_type);
                 desc.ByteWidth = (UINT)(m_modelTransforms.size() * desc.StructureByteStride);*/
                 const uint32_t numInstances = 121;
-                bgfx::allocInstanceDataBuffer(m_modelTransformsStructuredBuffer.get(), numInstances, sizeof(decltype(m_modelTransforms)::value_type));
+                bgfx::allocInstanceDataBuffer(&m_modelTransformsStructuredBuffer.Get(), numInstances, sizeof(decltype(m_modelTransforms)::value_type));
 
 
 
@@ -161,10 +161,15 @@ namespace Pbr
                 
                 XMStoreFloat4x4(&m_modelTransforms[node.Index], XMMatrixMultiply(parentTransform, XMMatrixTranspose(node.GetTransform())));
             }
-            m_modelTransformsStructuredBuffer.get()->data = (uint8_t*) m_modelTransforms.data();
+            
+            bgfx::InstanceDataBuffer x;
+            // Seyi NOTE: This casting may not work
+            x.data = (uint8_t*) m_modelTransforms.data();
+            m_modelTransformsStructuredBuffer = UniqueBgfxHandle(x);
+                //.data = (uint8_t*) m_modelTransforms.data();
             // Update node transform structured buffer.
             //context->UpdateSubresource(m_modelTransformsStructuredBuffer.get(), 0, nullptr, this->m_modelTransforms.data(), 0, 0);
-            bgfx::setInstanceDataBuffer(m_modelTransformsStructuredBuffer.get());
+            bgfx::setInstanceDataBuffer(&m_modelTransformsStructuredBuffer.Get());
             TotalModifyCount = newTotalModifyCount;
         }
     }

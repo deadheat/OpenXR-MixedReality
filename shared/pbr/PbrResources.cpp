@@ -5,7 +5,6 @@
 #include "PbrCommon.h"
 #include "PbrResources.h"
 #include "PbrMaterial.h"
-
 #include <PbrPixelShader.h>
 #include <PbrVertexShader.h>
 #include <HighlightPixelShader.h>
@@ -235,11 +234,12 @@ namespace Pbr {
     }
 
 
-    winrt::com_ptr<ID3D11Device> Resources::GetDevice() const {
-        winrt::com_ptr<ID3D11Device> device;
-        //m_impl->Resources.SceneConstantBuffer->GetDevice(device.put());
-        return device;
-    }
+    //winrt::com_ptr<ID3D11Device> Resources::GetDevice() const {
+    //    winrt::com_ptr<ID3D11Device> device;
+    //    //m_impl->Resources.SceneConstantBuffer->GetDevice(device.put());
+    //    return device;
+    //}
+
     void Resources::SubmitProgram() const {
         // Need to submit program somehow
         //(*pbrResources.m_impl.get()).Resources
@@ -321,7 +321,7 @@ namespace Pbr {
             std::lock_guard guard(m_impl->m_cacheMutex);
             auto textureIt = m_impl->Resources.SolidColorTextureCache.find(colorKey);
             if (textureIt != m_impl->Resources.SolidColorTextureCache.end()) {
-                return textureIt->second;
+                return std::move(textureIt->second);
             }
         }
 
@@ -329,7 +329,7 @@ namespace Pbr {
             Pbr::Texture::CreateTexture(rgba.data(), 1, 1, 1, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
         std::lock_guard guard(m_impl->m_cacheMutex);
         // If the key already exists then the existing texture will be returned.
-        return m_impl->Resources.SolidColorTextureCache.emplace(colorKey, texture).first->second;
+        return std::move(m_impl->Resources.SolidColorTextureCache.emplace(colorKey, texture).first->second);
     }
     /*uniform mat4 u_viewProjection;
             uniform vec4 u_eyePosition;

@@ -7,6 +7,8 @@
     </ClCompile>
     <ClCompile Include="FileUtility.cpp" />
     <ClCompile Include="DxUtility.cpp" />
+    <ClCompile Include="bgfx_utils.cpp" />
+    <ClCompile Include="BgfxUtility.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -31,6 +33,9 @@
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="Guid.h" />
+    <ClInclude Include="bgfx_utils.h" />
+    <ClInclude Include="BgfxHandle.h" />
+    <ClInclude Include="BgfxUtility.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DirectXTK">
@@ -44,6 +49,7 @@
     <None Include="packages.config" />
     <None Include="Sample_DiffuseHDR.dds" />
     <None Include="Sample_SpecularHDR.dds" />
+    <None Include="$(OpenXRLoaderBinaryRoot)\bin\openxr_loader.dll" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="UWPAssets\smallTile-sdk.png">

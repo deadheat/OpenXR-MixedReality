@@ -19,6 +19,7 @@ namespace {
         const uint8_t* rgbaBuffer = GltfHelper::ReadImageAsRGBA(image, &tempBuffer);
         if (rgbaBuffer == nullptr) {
             return unique_bgfx_handle(nullptr);
+
         }
 
         const DXGI_FORMAT format = sRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -205,6 +206,7 @@ namespace Gltf {
                         // Find or load the image referenced by the texture.
                         const ImageKey imageKey = std::make_tuple(texture.Image, sRGB);
                         if (!imageMap[imageKey]) // If not cached, load the image and store it in the texture cache.
+
                         {
                             // TODO: Generate mipmaps if sampler's minification filter (minFilter) uses mipmapping.
                             // TODO: If texture is not power-of-two and (sampler has wrapping=repeat/mirrored_repeat OR minFilter uses
@@ -216,12 +218,13 @@ namespace Gltf {
 
                         // Find or create the sampler referenced by the texture.
                         unique_bgfx_handle<bgfx::UniformHandle> samplerState = unique_bgfx_handle(samplerMap[texture.Sampler]);
+
                         if (!samplerState) // If not cached, create the sampler and store it in the sampler cache.
                         {
                             samplerState = texture.Sampler != nullptr
                                                ? CreateSampler(_name, gltfModel, *texture.Sampler)
                                                : Pbr::Texture::CreateSampler(_name);
-                            samplerMap[texture.Sampler] = samplerState;
+                            samplerMap[texture.Sampler] = std::move(samplerState);
                         }
 
                         pbrMaterial->SetTexture(slot, &textureView.Get(), &samplerState.Get());

@@ -244,7 +244,7 @@ namespace {
         spaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
         CHECK_XRCMD(xrCreateReferenceSpace(session.Handle, &spaceCreateInfo, m_sceneSpace.Put()));
 
-        Pbr::Resources pbrResources = sample::InitializePbrResources(device.get());
+        Pbr::Resources pbrResources = sample::InitializePbrResources();
 
         m_sceneContext = std::make_unique<::SceneContext>(std::move(instance),
                                                           std::move(extensions),

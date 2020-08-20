@@ -8,6 +8,7 @@
     <ClCompile Include="FileUtility.cpp" />
     <ClCompile Include="DxUtility.cpp" />
     <ClCompile Include="BgfxUtility.cpp" />
+    <ClCompile Include="bgfx_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -33,6 +34,8 @@
     <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="BgfxUtility.h" />
+    <ClInclude Include="BgfxHandle.h" />
+    <ClInclude Include="bgfx_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DirectXTK">

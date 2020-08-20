@@ -11,6 +11,7 @@
 #include <d3d11_2.h>
 #include <DirectXMath.h>
 #include "PbrCommon.h"
+#include "SampleShared/BgfxUtility.h"
 
 namespace Pbr {
     namespace ShaderSlots {
@@ -79,7 +80,7 @@ namespace Pbr {
         void ReleaseDeviceDependentResources();
 
         // Get the D3D11Device that the PBR resources are associated with.
-        winrt::com_ptr<ID3D11Device> GetDevice() const;
+        //winrt::com_ptr<ID3D11Device> GetDevice() const;
 
         // Set the directional light.
         void SetLight(DirectX::XMFLOAT3 direction, RGBColor diffuseColor);

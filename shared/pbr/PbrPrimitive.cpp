@@ -31,6 +31,7 @@ namespace {
     }
 
    unique_bgfx_handle<bgfx::VertexBufferHandle> CreateVertexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder,
+
                                                     bool updatableBuffers) {
         // Create Vertex Buffer BGFX
         bgfx::VertexLayout vertexLayout;
@@ -64,6 +65,7 @@ namespace {
     }
 
      unique_bgfx_handle<bgfx::IndexBufferHandle> CreateIndexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder
+
                                                    /*,bool updatableBuffers*/) {
         // Create bgfx Index Buffer
         // Create Index Buffer
@@ -109,7 +111,7 @@ namespace Pbr {
     }
 
     Primitive Primitive::Clone(Pbr::Resources const& pbrResources) const {
-        return Primitive(m_indexCount, m_indexBuffer, m_vertexBuffer, m_material->Clone(pbrResources));
+        return Primitive(m_indexCount, m_indexBuffer.Copy(), m_vertexBuffer.Copy(), m_material->Clone(pbrResources));
     }
 
     void Primitive::UpdateBuffers(const Pbr::PrimitiveBuilder& primitiveBuilder) {
@@ -147,9 +149,9 @@ namespace Pbr {
     void Primitive::Render() const {
         //const UINT stride = sizeof(Pbr::Vertex);
         //const UINT offset = 0;
-        bgfx::VertexBufferHandle* const vertexBuffers[] = {m_vertexBuffer.get()};
+        bgfx::VertexBufferHandle* const vertexBuffers[] = {&m_vertexBuffer.Get()};
         bgfx::setVertexBuffer(0, *vertexBuffers[0], 0, sizeof(vertexBuffers)/sizeof(bgfx::VertexBufferHandle*));
-        bgfx::setIndexBuffer(*m_indexBuffer.get());
+        bgfx::setIndexBuffer(m_indexBuffer.Get());
         /*context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
         context->IASetIndexBuffer(m_indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

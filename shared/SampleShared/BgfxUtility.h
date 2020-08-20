@@ -21,7 +21,7 @@
 #include <XrUtility/XrExtensionContext.h>
 #include <wil/resource.h>
 #include <bgfx/bgfx.h>
-
+#include "BgfxHandle.h"
 #include <bgfx/platform.h>
 
 #include <bx/uint32_t.h>
@@ -34,6 +34,7 @@ template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType
 using shared_bgfx_handle = wil::shared_any<unique_bgfx_handle<BgfxHandleType, close_fn_t, close_fn>>;
 
 namespace sample::bg {
+
     bgfx::TextureFormat::Enum DxgiFormatToBgfxFormat(DXGI_FORMAT format);
     winrt::com_ptr<IDXGIAdapter1> GetAdapter(LUID adapterId);
 

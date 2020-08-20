@@ -3,6 +3,7 @@
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
 
+#include "pch.h"
 #include "common.h"
 
 #include <tinystl/allocator.h>

@@ -114,6 +114,7 @@ namespace sample {
                                                  NULL,
                                                  &textureInformation["diffuseTextureView"]));
             specularTextureView.reset(loadTexture(FindFileInAppFolder(L"Sample_SpecularHDR.DDS", {"", "SampleShared_uwp"}).c_str(),
+
                                                        NULL,
                                                        NULL,
                                                        &textureInformation["specularTextureView"]));
