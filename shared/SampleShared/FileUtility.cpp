@@ -103,7 +103,7 @@ namespace sample {
         std::vector<byte> brdfLutFileData = ReadFileBytes(FindFileInAppFolder(L"brdf_lut.png", {"", L"Pbr_uwp"}));
         unique_bgfx_handle<bgfx::TextureHandle> brdLutResourceView =
             Pbr::Texture::LoadTextureImage(brdfLutFileData.data(), (uint32_t)brdfLutFileData.size());
-        pbrResources.SetBrdfLut(&brdLutResourceView.Get());
+        pbrResources.SetBrdfLut(&brdLutResourceView.get());
         unique_bgfx_handle<bgfx::TextureHandle> diffuseTextureView;
         unique_bgfx_handle<bgfx::TextureHandle> specularTextureView;
         std::map<std::string, bgfx::TextureInfo> textureInformation;
@@ -131,7 +131,7 @@ namespace sample {
             specularTextureView = Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White);
         }
 
-        pbrResources.SetEnvironmentMap(&specularTextureView.Get(), &diffuseTextureView.Get(), textureInformation);
+        pbrResources.SetEnvironmentMap(&specularTextureView.get(), &diffuseTextureView.get(), textureInformation);
 
         return pbrResources;
     }

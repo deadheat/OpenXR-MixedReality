@@ -15,6 +15,8 @@
 //*********************************************************
 #pragma once
 
+#include <memory>
+
 #include <winrt/base.h> // winrt::com_ptr
 #include <d3dcommon.h>  //ID3DBlob
 #include <XrUtility/XrHandle.h>
@@ -26,11 +28,38 @@
 #include <bx/uint32_t.h>
 #include "bgfx_utils.h"
 
-template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType), close_fn_t close_fn = bgfx::destroy>
-using unique_bgfx_handle = wil::unique_any<BgfxHandleType, close_fn_t, close_fn, wil::details::pointer_access_all, BgfxHandleType, decltype(bgfx::kInvalidHandle), bgfx::kInvalidHandle, BgfxHandleType>;
+template <typename bgfx_handle_t>
+struct bgfx_handle_wrapper_t : public bgfx_handle_t {
 
-template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType), close_fn_t close_fn = bgfx::destroy>
-using shared_bgfx_handle = wil::shared_any<unique_bgfx_handle<BgfxHandleType, close_fn_t, close_fn>>;
+    bgfx_handle_wrapper_t(const bgfx_handle_t& handle) {
+        this->idx = handle.idx;
+    }
+
+    bgfx_handle_wrapper_t(const uint16_t& handle) {
+        this->idx = handle;
+    }
+
+    operator uint16_t() const {
+        return this->idx;
+    }
+};
+
+template <typename bgfx_handle_t,
+          typename close_fn_t = void (*)(bgfx_handle_t),
+          close_fn_t close_fn = bgfx::destroy>
+using unique_bgfx_handle = wil::unique_any<bgfx_handle_wrapper_t<bgfx_handle_t>,
+                                           close_fn_t,
+                                           close_fn,
+                                           wil::details::pointer_access_all,
+                                           bgfx_handle_wrapper_t<bgfx_handle_t>,
+                                           decltype(bgfx::kInvalidHandle),
+                                           bgfx::kInvalidHandle,
+                                           bgfx_handle_wrapper_t<bgfx_handle_t>>;
+
+template <typename bgfx_handle_t,
+          typename close_fn_t = void (*)(bgfx_handle_t),
+          close_fn_t close_fn = bgfx::destroy>
+using shared_bgfx_handle = wil::shared_any<unique_bgfx_handle<bgfx_handle_t, close_fn_t, close_fn>>;
 
 namespace sample::bg {
 

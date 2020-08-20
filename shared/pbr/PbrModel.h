@@ -114,7 +114,7 @@ namespace Pbr {
 
         // Temporary buffer holds the world transforms, computed from the node's local transforms.
         mutable std::vector<DirectX::XMFLOAT4X4> m_modelTransforms;
-        mutable winrt::com_ptr<bgfx::InstanceDataBuffer> m_modelTransformsStructuredBuffer;
+        mutable bgfx::InstanceDataBuffer m_modelTransformsStructuredBuffer;
         mutable unique_bgfx_handle<bgfx::TextureHandle> m_modelTransformsResourceView;
         std::map<std::tuple<void*, void*>, CachedFrameBuffer> m_cachedFrameBuffers;
         mutable uint32_t TotalModifyCount{0};

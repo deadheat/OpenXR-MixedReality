@@ -4,7 +4,6 @@
  */
 
 #include "pch.h"
-#include "common.h"
 
 #include <tinystl/allocator.h>
 #include <tinystl/vector.h>
