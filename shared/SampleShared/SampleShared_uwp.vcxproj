@@ -352,7 +352,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BgfxHandle.h" />
     <ClInclude Include="BgfxUtility.h" />
     <ClInclude Include="bgfx_utils.h" />
     <ClInclude Include="DirectXTK\dds.h" />

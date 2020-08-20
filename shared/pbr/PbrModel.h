@@ -47,7 +47,7 @@ namespace Pbr {
         DirectX::XMFLOAT4X4 m_localTransform;
     };
     struct CachedFrameBuffer {
-        std::vector<UniqueBgfxHandle<bgfx::FrameBufferHandle>> FrameBuffers;
+        std::vector<unique_bgfx_handle<bgfx::FrameBufferHandle>> FrameBuffers;
     };
 
 
@@ -114,8 +114,8 @@ namespace Pbr {
 
         // Temporary buffer holds the world transforms, computed from the node's local transforms.
         mutable std::vector<DirectX::XMFLOAT4X4> m_modelTransforms;
-        mutable UniqueBgfxHandle<bgfx::InstanceDataBuffer> m_modelTransformsStructuredBuffer;
-        mutable UniqueBgfxHandle<bgfx::TextureHandle> m_modelTransformsResourceView;
+        mutable winrt::com_ptr<bgfx::InstanceDataBuffer> m_modelTransformsStructuredBuffer;
+        mutable unique_bgfx_handle<bgfx::TextureHandle> m_modelTransformsResourceView;
         std::map<std::tuple<void*, void*>, CachedFrameBuffer> m_cachedFrameBuffers;
         mutable uint32_t TotalModifyCount{0};
     };

@@ -336,7 +336,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
 	<ClInclude Include="../bgfx_utils.h" />
-	<ClInclude Include="../BgfxHandle.h" />
 	<ClInclude Include="../BgfxUtility.h" />
     <ClInclude Include="GltfLoader.h" />
     <ClInclude Include="PbrCommon.h" />
@@ -348,7 +347,6 @@
   </ItemGroup>
   <ItemGroup>
 	<ClCompile Include="../bgfx_utils.cpp" />
-	<ClCompile Include="../BgfxHandle.cpp" />
 	<ClCompile Include="../BgfxUtility.cpp" />
     <ClCompile Include="GltfLoader.cpp" />
     <ClCompile Include="PbrCommon.cpp" />

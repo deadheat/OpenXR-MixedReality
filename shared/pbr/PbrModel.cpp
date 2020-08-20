@@ -60,7 +60,7 @@ namespace Pbr
         }
 
         m_nodes.emplace_back(transform, std::move(name), newNodeIndex, parentIndex);
-        m_modelTransformsStructuredBuffer =std::move(UniqueBgfxHandle<bgfx::InstanceDataBuffer>()); // Structured buffer will need to be recreated.
+        m_modelTransformsStructuredBuffer = nullptr; // Structured buffer will need to be recreated.
         return m_nodes.back().Index;
     }
 
@@ -165,7 +165,7 @@ namespace Pbr
             bgfx::InstanceDataBuffer x;
             // Seyi NOTE: This casting may not work
             x.data = (uint8_t*) m_modelTransforms.data();
-            m_modelTransformsStructuredBuffer = UniqueBgfxHandle(x);
+            m_modelTransformsStructuredBuffer = unique_bgfx_handle(x);
                 //.data = (uint8_t*) m_modelTransforms.data();
             // Update node transform structured buffer.
             //context->UpdateSubresource(m_modelTransformsStructuredBuffer.get(), 0, nullptr, this->m_modelTransforms.data(), 0, 0);
