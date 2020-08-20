@@ -1,4 +1,4 @@
-
+#include "pch.h"
 #include "BgfxHandle.h"
 
 template <typename HandleType>
