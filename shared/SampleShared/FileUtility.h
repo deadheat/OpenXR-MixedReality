@@ -32,5 +32,5 @@ namespace sample {
     std::filesystem::path FindFileInAppFolder(const std::filesystem::path& filename,
                                               const std::vector<std::filesystem::path>& searchFolders = {""});
 
-    Pbr::Resources InitializePbrResources(ID3D11Device* device, bool environmentIBL = true);
+    Pbr::Resources InitializePbrResources(bool environmentIBL = true);
 } // namespace sample

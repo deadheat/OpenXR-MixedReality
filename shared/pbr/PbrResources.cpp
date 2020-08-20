@@ -234,11 +234,12 @@ namespace Pbr {
     }
 
 
-    winrt::com_ptr<ID3D11Device> Resources::GetDevice() const {
-        winrt::com_ptr<ID3D11Device> device;
-        //m_impl->Resources.SceneConstantBuffer->GetDevice(device.put());
-        return device;
-    }
+    //winrt::com_ptr<ID3D11Device> Resources::GetDevice() const {
+    //    winrt::com_ptr<ID3D11Device> device;
+    //    //m_impl->Resources.SceneConstantBuffer->GetDevice(device.put());
+    //    return device;
+    //}
+
     void Resources::SubmitProgram() const {
         // Need to submit program somehow
         //(*pbrResources.m_impl.get()).Resources
