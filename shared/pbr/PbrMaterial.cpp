@@ -56,9 +56,9 @@ namespace Pbr {
 
 
         // Seyi NOTE: I dont think this is putting the right samplers in place, should modify later
-        const UniqueBgfxHandle<bgfx::UniformHandle> defaultSampler = Pbr::Texture::CreateSampler("defaultSampler");
-        material->SetTexture(ShaderSlots::BaseColor, &pbrResources.CreateSolidColorTexture(RGBA::White).Get(), &defaultSampler.Get());
-        material->SetTexture(ShaderSlots::MetallicRoughness, &pbrResources.CreateSolidColorTexture(RGBA::White).Get(), &defaultSampler.Get());
+        const unique_bgfx_handle<bgfx::UniformHandle> defaultSampler = Pbr::Texture::CreateSampler("defaultSampler");
+        material->SetTexture(ShaderSlots::BaseColor, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
+        material->SetTexture(ShaderSlots::MetallicRoughness, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
         // No occlusion.
         material->SetTexture(ShaderSlots::Occlusion, &pbrResources.CreateSolidColorTexture(RGBA::White).Get(), &defaultSampler.Get());
         // Flat normal.

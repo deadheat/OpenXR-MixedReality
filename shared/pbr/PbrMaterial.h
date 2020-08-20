@@ -82,8 +82,8 @@ namespace Pbr {
         bgfx::UniformHandle m_emissiveAlphaCutoff;
 
         static constexpr size_t TextureCount = ShaderSlots::LastMaterialSlot + 1;
-        std::array<SharedBgfxHandle<bgfx::TextureHandle>, TextureCount> m_textures;
-        std::array<SharedBgfxHandle<bgfx::UniformHandle>, TextureCount> m_samplers;
-        UniqueBgfxHandle<bgfx::UniformHandle> m_constantBuffer;
+        std::array<shared_bgfx_handle<bgfx::TextureHandle>, TextureCount> m_textures;
+        std::array<shared_bgfx_handle<bgfx::UniformHandle>, TextureCount> m_samplers;
+        shared_bgfx_handle<bgfx::UniformHandle> m_constantBuffer;
     };
 } // namespace Pbr
