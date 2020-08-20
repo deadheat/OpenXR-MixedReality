@@ -332,8 +332,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BgfxUtility.h" />
-	<ClInclude Include="BgfxHandle.h" />
-	<ClInclude Include="bgfx_utils.h" />
+    <ClInclude Include="BgfxHandle.h" />
+    <ClInclude Include="bgfx_utils.h" />
     <ClInclude Include="DirectXTK\dds.h" />
     <ClInclude Include="DirectXTK\DDSTextureLoader.h" />
     <ClInclude Include="DirectXTK\DirectXHelpers.h" />
@@ -353,8 +353,7 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="DxUtility.cpp" />
-	<ClCompile Include="BgfxHandle.cpp" />
-	<ClCompile Include="bgfx_utils.cpp" />
+    <ClCompile Include="bgfx_utils.cpp" />
     <ClCompile Include="DirectXTK\DDSTextureLoader.cpp" />
     <ClCompile Include="FileUtility.cpp" />
   </ItemGroup>

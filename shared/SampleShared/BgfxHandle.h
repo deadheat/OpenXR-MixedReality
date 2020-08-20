@@ -6,56 +6,108 @@
 
 template <typename HandleType>
 class UniqueBgfxHandle {
-public:
-    UniqueBgfxHandle() = default;
-    explicit operator bool() const noexcept;
-    explicit UniqueBgfxHandle(HandleType handle)
-        : m_handle(handle) {
+    explicit operator bool() const noexcept {
+        return m_handle != bgfx::kInvalidHandle;
     }
-    UniqueBgfxHandle(const UniqueBgfxHandle&) = delete;
-    UniqueBgfxHandle(UniqueBgfxHandle&& other) noexcept;
+    UniqueBgfxHandle::UniqueBgfxHandle(UniqueBgfxHandle&& other) noexcept {
+        *this = std::move(other);
+    }
 
     ~UniqueBgfxHandle() noexcept {
         Reset();
     }
+    UniqueBgfxHandle& UniqueBgfxHandle::operator=(UniqueBgfxHandle&& other) noexcept {
+        if (m_handle.idx != other.m_handle.idx) {
+            Reset();
 
-    UniqueBgfxHandle& operator=(const UniqueBgfxHandle&) = delete;
-    UniqueBgfxHandle& operator=(UniqueBgfxHandle&& other) noexcept;
+            m_handle = other.m_handle;
+            other.m_handle = {bgfx::kInvalidHandle};
+        }
+        return *this;
+    }
 
-    HandleType Get() const noexcept;
+    HandleType UniqueBgfxHandle::Get() const noexcept {
+        return m_handle;
+    }
 
-    HandleType* Put() noexcept;
+    HandleType* UniqueBgfxHandle::Put() noexcept {
+        Reset();
+        return &m_handle;
+    }
 
-    void Reset() noexcept;
-
-private:
-    HandleType m_handle{bgfx::kInvalidHandle};
+    void UniqueBgfxHandle::Reset() noexcept {
+        if (bgfx::isValid(m_handle)) {
+            bgfx::destroy(m_handle);
+            m_handle = {bgfx::kInvalidHandle};
+        }
+    }
 };
 
 template <typename HandleType2>
 class SharedBgfxHandle {
-public:
-    SharedBgfxHandle() = default;
-    explicit operator bool() const noexcept;
-    explicit SharedBgfxHandle(HandleType2 handle);
-    explicit SharedBgfxHandle(HandleType2 handle, int* refcount);
-    SharedBgfxHandle(const SharedBgfxHandle&);
-    SharedBgfxHandle(SharedBgfxHandle&& other) noexcept;
+    // SharedBgfxHandle() = default;
+    explicit SharedBgfxHandle::SharedBgfxHandle(HandleType2 handle) {
+        m_handle = handle;
+    }
+    explicit SharedBgfxHandle::operator bool() const noexcept {
+        return m_handle != bgfx::kInvalidHandle;
+    }
+    explicit SharedBgfxHandle::SharedBgfxHandle(HandleType2 handle) {
+        m_handle = handle;
+        *m_refcount = 0;
+    }
+    explicit SharedBgfxHandle::SharedBgfxHandle(HandleType2 handle, int* refcount) {
+        m_handle = handle;
+        *refcount = *refcount + 1;
+        m_refcount = refcount;
+    }
 
-    ~SharedBgfxHandle() noexcept;
+    SharedBgfxHandle<HandleType2>::SharedBgfxHandle(const UniqueBgfxHandle&) {
+        return this.Copy();
+    }
+    // SharedBgfxHandle(const SharedBgfxHandle&) = delete;
+    SharedBgfxHandle::SharedBgfxHandle(SharedBgfxHandle&& other) noexcept {
+        *this = std::move(other);
+    }
 
-    SharedBgfxHandle& operator=(const SharedBgfxHandle&);
+    ~SharedBgfxHandle() noexcept {
+        if (*m_refcount < 1) {
+            Reset();
+        } else {
+            *m_refcount = *m_refcount - 1;
+        }
+    }
+    SharedBgfxHandle& SharedBgfxHandle<HandleType2>::operator=(const SharedBgfxHandle&) {
+        return this.Copy();
+    }
 
-    SharedBgfxHandle& operator=(SharedBgfxHandle&& other) noexcept;
+    // SharedBgfxHandle& operator=(const SharedBgfxHandle&) = delete;
+    SharedBgfxHandle& SharedBgfxHandle::operator=(SharedBgfxHandle&& other) noexcept {
+        if (m_handle.idx != other.m_handle.idx) {
+            Reset();
 
-    SharedBgfxHandle<HandleType2> Copy() const noexcept;
-    HandleType2 Get() const noexcept;
-    
-    HandleType2* Put() noexcept;
+            m_handle = other.m_handle;
+            other.m_handle = {bgfx::kInvalidHandle};
+        }
+        return *this;
+    }
 
-    void Reset() noexcept;
+    HandleType2 SharedBgfxHandle::Get() const noexcept {
+        return m_handle;
+    }
 
-private:
-    int* m_refcount;
-    HandleType2 m_handle{bgfx::kInvalidHandle};
+    HandleType2* SharedBgfxHandle::Put() noexcept {
+        Reset();
+        return &m_handle;
+    }
+    SharedBgfxHandle<HandleType2> SharedBgfxHandle::SharedBgfxHandle::Copy() const noexcept {
+        return SharedBgfxHandle<HandleType2>(m_handle, m_refcount);
+    }
+
+    void Reset() noexcept {
+        if (bgfx::isValid(m_handle)) {
+            bgfx::destroy(m_handle);
+            m_handle = {bgfx::kInvalidHandle};
+        }
+    }
 };

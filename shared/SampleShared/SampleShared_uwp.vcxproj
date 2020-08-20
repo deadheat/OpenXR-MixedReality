@@ -369,7 +369,6 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BgfxHandle.cpp" />
     <ClCompile Include="BgfxUtility.cpp" />
     <ClCompile Include="bgfx_utils.cpp" />
     <ClCompile Include="pch.cpp">

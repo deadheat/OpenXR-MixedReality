@@ -8,7 +8,6 @@
     <ClCompile Include="FileUtility.cpp" />
     <ClCompile Include="DxUtility.cpp" />
     <ClCompile Include="bgfx_utils.cpp" />
-    <ClCompile Include="BgfxHandle.cpp" />
     <ClCompile Include="BgfxUtility.cpp" />
   </ItemGroup>
   <ItemGroup>
