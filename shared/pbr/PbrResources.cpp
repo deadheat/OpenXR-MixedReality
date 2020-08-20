@@ -370,8 +370,7 @@ namespace Pbr {
             fsh = m_impl->Resources.PbrPixelShader.Get();
         }
 
-        m_impl->Resources.ShaderProgram =
-            unique_bgfx_handle<bgfx::ProgramHandle>(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
+        m_impl->Resources.ShaderProgram = std::move(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
 
         /*ID3D11Buffer* vsBuffers[] = {m_impl->Resources.SceneConstantBuffer.get(), m_impl->Resources.ModelConstantBuffer.get()};
         context->VSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(vsBuffers), vsBuffers);

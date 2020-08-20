@@ -102,7 +102,7 @@ namespace Pbr {
 
         // Many 1x1 pixel colored textures are used in the PBR system. This is used to create textures backed by a cache to reduce the
         // number of textures created.
-        UniqueBgfxHandle<bgfx::TextureHandle> CreateSolidColorTexture(RGBAColor color) const;
+        unique_bgfx_handle<bgfx::TextureHandle> CreateSolidColorTexture(RGBAColor color) const;
 
         // Bind the the PBR resources to the current context.
         void Bind() const;

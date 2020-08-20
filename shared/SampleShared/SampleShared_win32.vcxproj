@@ -332,7 +332,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BgfxUtility.h" />
-    <ClInclude Include="BgfxHandle.h" />
     <ClInclude Include="bgfx_utils.h" />
     <ClInclude Include="DirectXTK\dds.h" />
     <ClInclude Include="DirectXTK\DDSTextureLoader.h" />

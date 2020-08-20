@@ -19,18 +19,17 @@
 #include <d3dcommon.h>  //ID3DBlob
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrExtensionContext.h>
-#include <wil/resource.h>
+#include "wil/resource.h"
 #include <bgfx/bgfx.h>
-#include "BgfxHandle.h"
 #include <bgfx/platform.h>
 
 #include <bx/uint32_t.h>
 #include "bgfx_utils.h"
 
-template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType), close_fn_t close_fn = ::bgfx::destroy>
-using unique_bgfx_handle = wil::unique_any<BgfxHandleType, close_fn_t, close_fn, wil::details::pointer_access_all, BgfxHandleType, decltype(::bgfx::kInvalidHandle), ::bgfx::kInvalidHandle, BgfxHandleType>;
+template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType), close_fn_t close_fn = bgfx::destroy>
+using unique_bgfx_handle = wil::unique_any<BgfxHandleType, close_fn_t, close_fn, wil::details::pointer_access_all, BgfxHandleType, decltype(bgfx::kInvalidHandle), bgfx::kInvalidHandle, BgfxHandleType>;
 
-template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType), close_fn_t close_fn = ::bgfx::destroy>
+template <typename BgfxHandleType, typename close_fn_t = void (*)(BgfxHandleType), close_fn_t close_fn = bgfx::destroy>
 using shared_bgfx_handle = wil::shared_any<unique_bgfx_handle<BgfxHandleType, close_fn_t, close_fn>>;
 
 namespace sample::bg {

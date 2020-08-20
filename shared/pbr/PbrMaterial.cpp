@@ -71,10 +71,10 @@ namespace Pbr {
     void Material::SetTexture(ShaderSlots::PSMaterial slot,
                               _In_ bgfx::TextureHandle* textureView,
                               _In_opt_ bgfx::UniformHandle* sampler) {
-        m_textures[slot] = UniqueBgfxHandle(*textureView);
+        m_textures[slot] = unique_bgfx_handle(*textureView);
 
         if (sampler) {
-            m_samplers[slot] = UniqueBgfxHandle(*sampler);
+            m_samplers[slot] = unique_bgfx_handle(*sampler);
         }
     }
 
