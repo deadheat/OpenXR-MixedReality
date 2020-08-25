@@ -37,6 +37,10 @@
 
 template <typename bgfx_handle_t>
 struct bgfx_handle_wrapper_t : public bgfx_handle_t {
+    bgfx_handle_wrapper_t() {
+        this->idx = bgfx::kInvalidHandle;
+    }
+
     bgfx_handle_wrapper_t(const bgfx_handle_t& handle) {
         this->idx = handle.idx;
     }
