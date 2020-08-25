@@ -279,7 +279,8 @@ namespace Pbr {
             // Each side is a 1x1 pixel (RGBA) image.
             const std::array<uint8_t, 4> rgbaColor = LoadRGBAUI4(color);
             unique_bgfx_handle<bgfx::TextureHandle> textureView;
-            textureView = unique_bgfx_handle(bgfx::createTextureCube(1 /*_size*/,
+            textureView = unique_bgfx_handle<bgfx::TextureHandle>(
+                bgfx::createTextureCube(1 /*_size*/,
                                         true /*bool _hasMips*/,
                                         6 /*_numLayers*/,
                                         format,
@@ -295,7 +296,8 @@ namespace Pbr {
                                                                int height,
                                                                bgfx::TextureFormat::Enum format) {
             unique_bgfx_handle<bgfx::TextureHandle> textureView;
-            textureView = unique_bgfx_handle(bgfx::createTexture2D(width,
+            textureView =
+                unique_bgfx_handle<bgfx::TextureHandle>(bgfx::createTexture2D(width,
                                   height,
                                   true/*_hasMips*/,
                                   1 /*_numLayers*/,
@@ -309,7 +311,7 @@ namespace Pbr {
         unique_bgfx_handle<bgfx::UniformHandle> CreateSampler(const char* _uniqueName) {
             bgfx::UniformHandle sampler = bgfx::createUniform(_uniqueName, bgfx::UniformType::Sampler);
             unique_bgfx_handle<bgfx::UniformHandle> samplerState;
-            samplerState = unique_bgfx_handle(sampler);
+            samplerState = unique_bgfx_handle<bgfx::UniformHandle>(sampler);
             return samplerState;
         }
     } // namespace Texture

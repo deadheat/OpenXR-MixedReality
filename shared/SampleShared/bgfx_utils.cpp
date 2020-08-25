@@ -17,11 +17,15 @@ namespace stl = tinystl;
 #include <bx/readerwriter.h>
 #include <bx/string.h>
 #include "entry/entry.h"
-#include <meshoptimizer/src/meshoptimizer.h>
+#include "meshoptimizer/src/meshoptimizer.h"
 
 #include "bgfx_utils.h"
 
 #include <bimg/decode.h>
+#include <stdio.h>
+#include <stdlib.h>
+//#include <assert.h>
+const size_t BGFX_UTILS_BUFFER_SIZE = 1028;
 
 void* load(bx::FileReaderI* _reader, bx::AllocatorI* _allocator, const char* _filePath, uint32_t* _size)
 {
@@ -117,7 +121,8 @@ static bgfx::ShaderHandle loadShader(bx::FileReaderI* _reader, const char* _name
 	case bgfx::RendererType::WebGPU:     shaderPath = "shaders/spirv/"; break;
 
 	case bgfx::RendererType::Count:
-		BX_ASSERT(false, "You should not be here!");
+            //cout << "You should not be here!" << endl;
+		//bgfx::BX_ASSERT(false, "You should not be here!");
 		break;
 	}
 
@@ -164,9 +169,14 @@ bgfx::TextureHandle loadTexture(bx::FileReaderI* _reader, const wchar_t* _filePa
 {
 	BX_UNUSED(_skip);
 	bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
+	
+	size_t i;
+    char* pMBBuffer = (char*)malloc(1028);
+    // Conversion
+    wcstombs_s(&i, pMBBuffer, BGFX_UTILS_BUFFER_SIZE, _filePath, BGFX_UTILS_BUFFER_SIZE);
 
 	uint32_t size;
-	void* data = load(_reader, entry::getAllocator(), _filePath, &size);
+    void* data = load(_reader, entry::getAllocator(), pMBBuffer, &size);
 	if (NULL != data)
 	{
 		bimg::ImageContainer* imageContainer = bimg::imageParse(entry::getAllocator(), data, size);
@@ -224,9 +234,13 @@ bgfx::TextureHandle loadTexture(bx::FileReaderI* _reader, const wchar_t* _filePa
 
 			if (bgfx::isValid(handle) )
 			{
-				bgfx::setName(handle, _filePath);
+                size_t i;
+                char* pMBBuffer = (char*)malloc(1028);
+                // Conversion
+                wcstombs_s(&i, pMBBuffer, BGFX_UTILS_BUFFER_SIZE, _filePath, BGFX_UTILS_BUFFER_SIZE);
+                bgfx::setName(handle, pMBBuffer);
 			}
-
+                        
 			if (NULL != _info)
 			{
 				bgfx::calcTextureSize(

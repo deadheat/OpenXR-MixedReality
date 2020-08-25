@@ -378,7 +378,7 @@
       <DeploymentContent>true</DeploymentContent>
     </Image>
   </ItemGroup>
-  <ItemGroup>
+  <!--<ItemGroup>
     <None Include="packages.config" />
     <None Include="Shaders\Shared.hlsl">
       <FileType>Document</FileType>
@@ -436,7 +436,7 @@
 	  <HeaderFileOutput>$(IntDir)\%(Filename).h</HeaderFileOutput>
 	  <ObjectFileOutput />
     </FxCompile>
-  </ItemGroup>
+  </ItemGroup>-->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\..\packages\Microsoft.Windows.ImplementationLibrary.1.0.200519.2\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\..\packages\Microsoft.Windows.ImplementationLibrary.1.0.200519.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />

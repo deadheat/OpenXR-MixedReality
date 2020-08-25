@@ -48,7 +48,7 @@ namespace Pbr {
             material->SetAlphaBlended(true);
         }
 
-        Pbr::Material::ConstantBufferData& parameters = material->Parameters();
+        Pbr::Material::ConstantBufferData parameters = material->Parameters();
         parameters.BaseColorFactor = baseColorFactor;
         parameters.EmissiveFactor = emissiveFactor;
         parameters.MetallicFactor = metallicFactor;
@@ -57,13 +57,13 @@ namespace Pbr {
 
         // Seyi NOTE: I dont think this is putting the right samplers in place, should modify later
         const unique_bgfx_handle<bgfx::UniformHandle> defaultSampler = Pbr::Texture::CreateSampler("defaultSampler");
-        material->SetTexture(ShaderSlots::BaseColor, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
-        material->SetTexture(ShaderSlots::MetallicRoughness, pbrResources.CreateSolidColorTexture(RGBA::White).get(), defaultSampler.get());
+        material->SetTexture(ShaderSlots::BaseColor, &pbrResources.CreateSolidColorTexture(RGBA::White).get(), &defaultSampler.get());
+        material->SetTexture(ShaderSlots::MetallicRoughness, &pbrResources.CreateSolidColorTexture(RGBA::White).get(), &defaultSampler.get());
         // No occlusion.
-        material->SetTexture(ShaderSlots::Occlusion, &pbrResources.CreateSolidColorTexture(RGBA::White).Get(), &defaultSampler.Get());
+        material->SetTexture(ShaderSlots::Occlusion, &pbrResources.CreateSolidColorTexture(RGBA::White).get(), &defaultSampler.get());
         // Flat normal.
-        material->SetTexture(ShaderSlots::Normal,&pbrResources.CreateSolidColorTexture(RGBA::FlatNormal).Get(), &defaultSampler.Get());
-        material->SetTexture(ShaderSlots::Emissive, &pbrResources.CreateSolidColorTexture(RGBA::White).Get(), &defaultSampler.Get());
+        material->SetTexture(ShaderSlots::Normal,&pbrResources.CreateSolidColorTexture(RGBA::FlatNormal).get(), &defaultSampler.get());
+        material->SetTexture(ShaderSlots::Emissive, &pbrResources.CreateSolidColorTexture(RGBA::White).get(), &defaultSampler.get());
 
         return material;
     }
@@ -71,10 +71,10 @@ namespace Pbr {
     void Material::SetTexture(ShaderSlots::PSMaterial slot,
                               _In_ bgfx::TextureHandle* textureView,
                               _In_opt_ bgfx::UniformHandle* sampler) {
-        m_textures[slot] = unique_bgfx_handle(*textureView);
+        m_textures[slot] = unique_bgfx_handle<bgfx::TextureHandle>(*textureView);
 
         if (sampler) {
-            m_samplers[slot] = unique_bgfx_handle(*sampler);
+            m_samplers[slot] = unique_bgfx_handle<bgfx::UniformHandle>(*sampler);
         }
     }
 
@@ -124,10 +124,10 @@ namespace Pbr {
         //static_assert(Pbr::ShaderSlots::BaseColor == 0, "BaseColor must be the first slot");
 
         std::array < bgfx::TextureHandle*, TextureCount > textures;
-        std::transform(m_textures.begin(), m_textures.end(), textures.begin(), [](const auto& texture) { return texture.get(); });
+        std::transform(m_textures.begin(), m_textures.end(), textures.begin(), [](const auto& texture) { return &texture.get(); });
         std::array<bgfx::UniformHandle*, TextureCount> samplers;
-        std::transform(m_samplers.begin(), m_samplers.end(), samplers.begin(), [](const auto& sampler) { return sampler.get(); });
-        for (int i = 0; i < samplers.size(); i++) {
+        std::transform(m_samplers.begin(), m_samplers.end(), samplers.begin(), [](const auto& sampler) { return &sampler.get(); });
+        for (unsigned int i = 0; i < samplers.size(); i++) {
             bgfx::setTexture(i, *samplers[i], *textures[i]);
         }
         //setUniform(textures[0], textures.data(), (UINT)textures.size());

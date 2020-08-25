@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
+  <!--<ItemGroup>
     <FxCompile Include="Shaders\PbrPixelShader.sc">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -13,7 +13,7 @@
     <FxCompile Include="Shaders\HighlightVertexShader.sc">
       <Filter>Shaders</Filter>
     </FxCompile>
-  </ItemGroup>
+  </ItemGroup>-->
   <ItemGroup>
     <ClCompile Include="GltfLoader.cpp" />
     <ClCompile Include="PbrCommon.cpp" />
@@ -32,7 +32,7 @@
     <ClInclude Include="PbrResources.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
-  <ItemGroup>
+  <!--<ItemGroup>
     <None Include="Shaders\PbrShared.sc">
       <Filter>Shaders</Filter>
     </None>
@@ -51,5 +51,5 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{42dd56b0-5d6b-4bb1-9219-15b8d3954fe5}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
+  </ItemGroup>-->
 </Project>

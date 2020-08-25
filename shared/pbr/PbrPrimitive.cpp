@@ -61,7 +61,7 @@ namespace {
         //bgfx::VertexBufferHandle rawVertexBuffer = 
         //    
         //vertexBuffer.copy_from(&rawVertexBuffer);
-        return unique_bgfx_handle(bgfx::createVertexBuffer(bgfx::makeRef(primitiveBuilder.Vertices.data(), sizeof(primitiveBuilder.Vertices.data())), vertexLayout));
+        return unique_bgfx_handle<bgfx::VertexBufferHandle>(bgfx::createVertexBuffer(bgfx::makeRef(primitiveBuilder.Vertices.data(), sizeof(primitiveBuilder.Vertices.data())), vertexLayout));
     }
 
      unique_bgfx_handle<bgfx::IndexBufferHandle> CreateIndexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder
@@ -83,7 +83,8 @@ namespace {
         initData.pSysMem = primitiveBuilder.Indices.data();*/
 
     
-        return unique_bgfx_handle(bgfx::createIndexBuffer(bgfx::makeRef(primitiveBuilder.Indices.data(), sizeof(primitiveBuilder.Indices.data()))));
+        return unique_bgfx_handle<bgfx::IndexBufferHandle>(
+            bgfx::createIndexBuffer(bgfx::makeRef(primitiveBuilder.Indices.data(), sizeof(primitiveBuilder.Indices.data()))));
     }
 } // namespace
 
@@ -91,8 +92,8 @@ namespace Pbr {
     const bgfx::RendererType::Enum type = bgfx::getRendererType();
 
     Primitive::Primitive(UINT indexCount,
-                         unique_bgfx_handle<bgfx::IndexBufferHandle> indexBuffer,
-                         unique_bgfx_handle<bgfx::VertexBufferHandle> vertexBuffer,
+                         shared_bgfx_handle<bgfx::IndexBufferHandle> indexBuffer,
+                         shared_bgfx_handle<bgfx::VertexBufferHandle> vertexBuffer,
                          std::shared_ptr<Material> material)
         : m_indexCount(indexCount)
         , m_indexBuffer(std::move(indexBuffer))
@@ -111,7 +112,7 @@ namespace Pbr {
     }
 
     Primitive Primitive::Clone(Pbr::Resources const& pbrResources) const {
-        return Primitive(m_indexCount, m_indexBuffer.Copy(), m_vertexBuffer.Copy(), m_material->Clone(pbrResources));
+        return Primitive(m_indexCount, m_indexBuffer, m_vertexBuffer, m_material->Clone(pbrResources));
     }
 
     void Primitive::UpdateBuffers(const Pbr::PrimitiveBuilder& primitiveBuilder) {
@@ -149,9 +150,9 @@ namespace Pbr {
     void Primitive::Render() const {
         //const UINT stride = sizeof(Pbr::Vertex);
         //const UINT offset = 0;
-        bgfx::VertexBufferHandle* const vertexBuffers[] = {&m_vertexBuffer.Get()};
+        bgfx::VertexBufferHandle* const vertexBuffers[] = {&m_vertexBuffer.get()};
         bgfx::setVertexBuffer(0, *vertexBuffers[0], 0, sizeof(vertexBuffers)/sizeof(bgfx::VertexBufferHandle*));
-        bgfx::setIndexBuffer(m_indexBuffer.Get());
+        bgfx::setIndexBuffer(m_indexBuffer.get());
         /*context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
         context->IASetIndexBuffer(m_indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

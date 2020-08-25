@@ -5,10 +5,6 @@
 #include "PbrCommon.h"
 #include "PbrResources.h"
 #include "PbrMaterial.h"
-#include <PbrPixelShader.h>
-#include <PbrVertexShader.h>
-#include <HighlightPixelShader.h>
-#include <HighlightVertexShader.h>
 
 #include <bx/platform.h>
 #include <bx/math.h>
@@ -16,6 +12,10 @@
 
 #include <bgfx/platform.h>
 #include <bgfx/embedded_shader.h>
+#include "Shaders/Compiled/fs_HighlightPixelShader.bin.h"
+#include "Shaders/Compiled/fs_PbrPixelShader.bin.h"
+#include "Shaders/Compiled/vs_HighlightVertexShader.bin.h"
+#include "Shaders/Compiled/vs_PbrVertexShader.bin.h"
 
 using namespace DirectX;
 
@@ -40,10 +40,11 @@ namespace {
         DirectX::XMFLOAT4X4 ModelToWorld;
     };
 } // namespace
-const bgfx::EmbeddedShader s_embeddedShaders[] = {BGFX_EMBEDDED_SHADER(g_PbrPixelShader),
-                                                  BGFX_EMBEDDED_SHADER(g_HighlightPixelShader),
-                                                  BGFX_EMBEDDED_SHADER(g_PbrVertexShader),
-                                                  BGFX_EMBEDDED_SHADER(g_HighlightVertexShader),
+// I removed opengl opengles abd metal
+const bgfx::EmbeddedShader s_embeddedShaders[] = {BGFX_EMBEDDED_SHADER(fs_PbrPixelShader),
+                                                  BGFX_EMBEDDED_SHADER(fs_HighlightPixelShader),
+                                                  BGFX_EMBEDDED_SHADER(vs_PbrVertexShader),
+                                                  BGFX_EMBEDDED_SHADER(vs_HighlightVertexShader),
                                                   BGFX_EMBEDDED_SHADER_END()};
 namespace Pbr {
     struct Resources::Impl {
@@ -66,13 +67,16 @@ namespace Pbr {
                 .end();
             // Set up pixel shader.
             bgfx::RendererType::Enum type = bgfx::RendererType::Direct3D11;
-            Resources.PbrPixelShader = unique_bgfx_handle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrPixelShader")));
+            Resources.PbrPixelShader = unique_bgfx_handle<bgfx::ShaderHandle>(bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_PbrPixelShader"));
             
-            Resources.HighlightPixelShader = unique_bgfx_handle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightPixelShader"));
+            Resources.HighlightPixelShader =
+                unique_bgfx_handle<bgfx::ShaderHandle>(bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_HighlightPixelShader"));
 
-            Resources.PbrVertexShader = unique_bgfx_handle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_PbrVertexShader"));
+            Resources.PbrVertexShader =
+                unique_bgfx_handle<bgfx::ShaderHandle>(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_PbrVertexShader"));
 
-            Resources.PbrVertexShader = unique_bgfx_handle(bgfx::createEmbeddedShader(s_embeddedShaders, type, "g_HighlightVertexShader"));
+            Resources.PbrVertexShader =
+                unique_bgfx_handle<bgfx::ShaderHandle>(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_HighlightVertexShader"));
 
  
             // Seyi NOTE: since there are no constant buffers in bgfx, will find some type of way to implement without
@@ -82,19 +86,19 @@ namespace Pbr {
             uniform mat3 u_highlightPositionLightDirectionLightColor;
             uniform vec4 u_numSpecularMipLevelsAnimationTime;*/
 
-            Resources.AllUniformHandles->ViewProjection = 
+            Resources.AllUniformHandles.ViewProjection = 
                 bgfx::createUniform("u_viewProjection", bgfx::UniformType::Mat4, 1);
-            Resources.AllUniformHandles->EyePosition =
+            Resources.AllUniformHandles.EyePosition =
                 bgfx::createUniform("u_eyePosition", bgfx::UniformType::Vec4, 1);
-            Resources.AllUniformHandles->HighlightPositionLightDirectionLightColor = 
+            Resources.AllUniformHandles.HighlightPositionLightDirectionLightColor = 
                 bgfx::createUniform("u_highlightPositionLightDirectionLightColor", bgfx::UniformType::Mat3, 1);
-            Resources.AllUniformHandles->NumSpecularMipLevelsAnimationTime =
+            Resources.AllUniformHandles.NumSpecularMipLevelsAnimationTime =
                 bgfx::createUniform("u_numSpecularMipLevelsAnimationTime", bgfx::UniformType::Vec4, 1);
             /*static_assert((sizeof(SceneConstantBuffer) % 16) == 0, "Constant Buffer must be divisible by 16 bytes");
             const CD3D11_BUFFER_DESC pbrConstantBufferDesc(sizeof(SceneConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
             Internal::ThrowIfFailed(device->CreateBuffer(&pbrConstantBufferDesc, nullptr, Resources.SceneConstantBuffer.put()));*/
 
-            Resources.AllUniformHandles->ModelToWorld = 
+            Resources.AllUniformHandles.ModelToWorld = 
                 bgfx::createUniform("u_modelToWorld", bgfx::UniformType::Mat4, 1);
             /*static_assert((sizeof(ModelConstantBuffer) % 16) == 0, "Constant Buffer must be divisible by 16 bytes");
             const CD3D11_BUFFER_DESC modelConstantBufferDesc(sizeof(ModelConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
@@ -113,7 +117,7 @@ namespace Pbr {
             Resources.DiffuseSampler = Texture::CreateSampler("u_diffuseTexture");
 
             uint64_t defaultState = BGFX_STATE_DEFAULT;
-            Resources.DefaultBlendState.copy_from(&defaultState);
+            Resources.DefaultBlendState = defaultState;
             // CD3D11_BLEND_DESC blendStateDesc(D3D11_DEFAULT);
             // Internal::ThrowIfFailed(device->CreateBlendState(&blendStateDesc, Resources.DefaultBlendState.put()));
 
@@ -123,7 +127,7 @@ namespace Pbr {
                 BGFX_STATE_BLEND_FUNC_SEPARATE(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA,BGFX_STATE_BLEND_ZERO,BGFX_STATE_BLEND_ONE) |
                 BGFX_STATE_WRITE_RGB | 
                 BGFX_STATE_WRITE_A;
-            Resources.AlphaBlendState.copy_from(&rtBlendMode);
+            Resources.AlphaBlendState = rtBlendMode;
             // D3D11_RENDER_TARGET_BLEND_DESC rtBlendDesc;
             // rtBlendDesc.BlendEnable = TRUE;
             // rtBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA;
@@ -144,7 +148,7 @@ namespace Pbr {
                         //Seyi NOTE: Wireframe is set in debugging in bgfx and not rasterizer so find a way to implement
                         uint64_t rastState = BGFX_STATE_DEFAULT;
                         rastState = doubleSided ? rastState : rastState | BGFX_STATE_CULL_CCW;
-                        Resources.RasterizerStates[doubleSided][wireframe][frontCounterClockwise].copy_from(&rastState);
+                        Resources.RasterizerStates[doubleSided][wireframe][frontCounterClockwise] = rastState;
                         //CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
                         //rasterizerDesc.CullMode = doubleSided ? D3D11_CULL_NONE : D3D11_CULL_BACK;
                         //rasterizerDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
@@ -160,7 +164,7 @@ namespace Pbr {
                     uint64_t rastState = BGFX_STATE_DEFAULT;
                     rastState = rastState | (reverseZ ? BGFX_STATE_DEPTH_TEST_GREATER : BGFX_STATE_DEPTH_TEST_LESS);
                     rastState = rastState | ( noWrite ? rastState : BGFX_STATE_WRITE_R);
-                    Resources.DepthStencilStates[reverseZ][noWrite].copy_from(&rastState);
+                    Resources.DepthStencilStates[reverseZ][noWrite] = rastState;
                 }
             }
         }
@@ -177,28 +181,27 @@ namespace Pbr {
             unique_bgfx_handle<bgfx::UniformHandle> SpecularSampler; 
             unique_bgfx_handle<bgfx::UniformHandle> DiffuseSampler;
             unique_bgfx_handle<bgfx::ProgramHandle> ShaderProgram;
-            unique_bgfx_handle<bgfx::VertexLayout> InputLayout;
-            unique_bgfx_handle<bgfx::EmbeddedShader> PbrVertexShader;
-            unique_bgfx_handle<bgfx::EmbeddedShader> PbrPixelShader;
-            unique_bgfx_handle<bgfx::EmbeddedShader> HighlightVertexShader;
-            unique_bgfx_handle<bgfx::EmbeddedShader> HighlightPixelShader;
+            //winrt::com_ptr<bgfx::VertexLayout> InputLayout;
+            unique_bgfx_handle<bgfx::ShaderHandle> PbrVertexShader;
+            unique_bgfx_handle<bgfx::ShaderHandle> PbrPixelShader;
+            unique_bgfx_handle<bgfx::ShaderHandle> HighlightVertexShader;
+            unique_bgfx_handle<bgfx::ShaderHandle> HighlightPixelShader;
             //winrt::com_ptr<ID3D11Buffer> SceneConstantBuffer;
-            winrt::com_ptr<SceneUniforms> SceneUniforms;
-            winrt::com_ptr<UniformHandles> AllUniformHandles;
-            winrt::com_ptr<ModelConstantUniform> ModelConstantUniform;
+            SceneUniforms SceneUniforms;
+            UniformHandles AllUniformHandles;
+            ModelConstantUniform ModelConstantUniform;
             unique_bgfx_handle<bgfx::TextureHandle> BrdfLut;
             unique_bgfx_handle<bgfx::TextureHandle> SpecularEnvironmentMap;
             unique_bgfx_handle<bgfx::TextureHandle> DiffuseEnvironmentMap;
-            winrt::com_ptr<uint64_t> AlphaBlendState;
-            winrt::com_ptr<uint64_t> DefaultBlendState;
-            winrt::com_ptr<uint64_t>
-                RasterizerStates[2][2][2]; // Three dimensions for [DoubleSide][Wireframe][FrontCounterClockWise]
+            uint64_t AlphaBlendState;
+            uint64_t DefaultBlendState;
+            uint64_t RasterizerStates[2][2][2]; // Three dimensions for [DoubleSide][Wireframe][FrontCounterClockWise]
             uint64_t StateFlags;
-            winrt::com_ptr<uint64_t> DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
+            uint64_t DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
             mutable std::map<uint32_t, unique_bgfx_handle<bgfx::TextureHandle>> SolidColorTextureCache;
         };
 
-        DeviceResources Resources;
+        mutable DeviceResources Resources;
         SceneUniforms SceneUniformsInstance;
         ModelConstantUniform ModelBuffer;
 
@@ -222,7 +225,7 @@ namespace Pbr {
     Resources::~Resources() = default;
 
     void Resources::SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut) {
-        m_impl->Resources.BrdfLut = unique_bgfx_handle(*brdfLut);
+        m_impl->Resources.BrdfLut = unique_bgfx_handle<bgfx::TextureHandle>(*brdfLut);
     }
 
     void Resources::CreateDeviceDependentResources() {
@@ -243,7 +246,7 @@ namespace Pbr {
     void Resources::SubmitProgram() const {
         // Need to submit program somehow
         //(*pbrResources.m_impl.get()).Resources
-        bgfx::submit(0,m_impl->Resources.ShaderProgram.Get());
+        bgfx::submit(0,m_impl->Resources.ShaderProgram.get());
         // ;
     }
 
@@ -276,7 +279,7 @@ namespace Pbr {
 
     void XM_CALLCONV Resources::SetModelToWorld(DirectX::FXMMATRIX modelToWorld) const {
         //XMStoreFloat4x4(&m_impl->ModelBuffer.ModelToWorld, XMMatrixTranspose(modelToWorld));
-        bgfx::setUniform(m_impl->Resources.AllUniformHandles->ModelToWorld, &modelToWorld, 1);
+        bgfx::setUniform(m_impl->Resources.AllUniformHandles.ModelToWorld, &modelToWorld, 1);
         //context->UpdateSubresource(m_impl->Resources.ModelConstantBuffer.get(), 0, nullptr, &m_impl->ModelBuffer, 0, 0);
     }
     // DirectX::XMFLOAT4X4 u_viewProjection;
@@ -308,8 +311,8 @@ namespace Pbr {
 
         // m_impl->SceneBuffer.NumSpecularMipLevels = desc.TextureCube.MipLevels;
         m_impl->SceneUniformsInstance.u_numSpecularMipLevelsAnimationTime[0] = textureInformation["specularEnvironmentView"].numMips;
-        m_impl->Resources.SpecularEnvironmentMap = unique_bgfx_handle(*specularEnvironmentMap);
-        m_impl->Resources.DiffuseEnvironmentMap = unique_bgfx_handle(*diffuseEnvironmentMap);
+        m_impl->Resources.SpecularEnvironmentMap = unique_bgfx_handle<bgfx::TextureHandle>(*specularEnvironmentMap);
+        m_impl->Resources.DiffuseEnvironmentMap = unique_bgfx_handle<bgfx::TextureHandle>(*diffuseEnvironmentMap);
     }
 
     unique_bgfx_handle<bgfx::TextureHandle> Resources::CreateSolidColorTexture(RGBAColor color) const {
@@ -343,13 +346,13 @@ namespace Pbr {
 
     void Resources::Bind() const {
         //context->UpdateSubresource(m_impl->Resources.SceneConstantBuffer.get(), 0, nullptr, &m_impl->SceneBuffer, 0, 0);
-        bgfx::setUniform(m_impl->Resources.AllUniformHandles->ViewProjection, &m_impl->SceneUniformsInstance.u_viewProjection);
-        bgfx::setUniform(m_impl->Resources.AllUniformHandles->EyePosition, &m_impl->SceneUniformsInstance.u_eyePosition);
-        bgfx::setUniform(m_impl->Resources.AllUniformHandles->HighlightPositionLightDirectionLightColor,
+        bgfx::setUniform(m_impl->Resources.AllUniformHandles.ViewProjection, &m_impl->SceneUniformsInstance.u_viewProjection);
+        bgfx::setUniform(m_impl->Resources.AllUniformHandles.EyePosition, &m_impl->SceneUniformsInstance.u_eyePosition);
+        bgfx::setUniform(m_impl->Resources.AllUniformHandles.HighlightPositionLightDirectionLightColor,
                    &m_impl->SceneUniformsInstance.u_highlightPositionLightDirectionLightColor);
-        bgfx::setUniform(m_impl->Resources.AllUniformHandles->NumSpecularMipLevelsAnimationTime,
+        bgfx::setUniform(m_impl->Resources.AllUniformHandles.NumSpecularMipLevelsAnimationTime,
                    &m_impl->SceneUniformsInstance.u_numSpecularMipLevelsAnimationTime);
-        bgfx::setUniform(m_impl->Resources.AllUniformHandles->ModelToWorld, &m_impl->ModelBuffer.ModelToWorld);
+        bgfx::setUniform(m_impl->Resources.AllUniformHandles.ModelToWorld, &m_impl->ModelBuffer.ModelToWorld);
 
    /*     if (m_impl->Shading == ShadingMode::Highlight) {
             context->VSSetShader(m_impl->Resources.HighlightVertexShader.get(), nullptr, 0);
@@ -359,18 +362,19 @@ namespace Pbr {
             context->PSSetShader(m_impl->Resources.PbrPixelShader.get(), nullptr, 0);
         }*/
 
-        const bgfx::ShaderHandle vsh;
-        const bgfx::ShaderHandle fsh;
+        bgfx::ShaderHandle vsh;
+        bgfx::ShaderHandle fsh;
 
         if (m_impl->Shading == ShadingMode::Highlight) {
-            vsh = m_impl->Resources.HighlightVertexShader.Get();
-            fsh = m_impl->Resources.HighlightPixelShader.Get();
+            vsh = m_impl->Resources.HighlightVertexShader.get();
+            fsh = m_impl->Resources.HighlightPixelShader.get();
         } else {
-            vsh = m_impl->Resources.PbrVertexShader.Get();
-            fsh = m_impl->Resources.PbrPixelShader.Get();
+            vsh = std::move(m_impl->Resources.PbrVertexShader.get());
+            fsh = std::move(m_impl->Resources.PbrPixelShader.get());
         }
 
-        m_impl->Resources.ShaderProgram = std::move(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
+        m_impl->Resources.ShaderProgram =
+            unique_bgfx_handle<bgfx::ProgramHandle>(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
 
         /*ID3D11Buffer* vsBuffers[] = {m_impl->Resources.SceneConstantBuffer.get(), m_impl->Resources.ModelConstantBuffer.get()};
         context->VSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(vsBuffers), vsBuffers);
@@ -381,9 +385,9 @@ namespace Pbr {
         /*static_assert(ShaderSlots::DiffuseTexture == ShaderSlots::SpecularTexture + 1, "Diffuse must follow Specular slot");
         static_assert(ShaderSlots::SpecularTexture == ShaderSlots::Brdf + 1, "Specular must follow BRDF slot");*/
 
-        bgfx::setTexture(5, m_impl->Resources.BRDFSampler.Get(), m_impl->Resources.BrdfLut.Get());
-        bgfx::setTexture(6, m_impl->Resources.SpecularSampler.Get(), m_impl->Resources.SpecularEnvironmentMap.Get());
-        bgfx::setTexture(7, m_impl->Resources.DiffuseSampler.Get(), m_impl->Resources.DiffuseEnvironmentMap.Get());
+        bgfx::setTexture(5, m_impl->Resources.BRDFSampler.get(), m_impl->Resources.BrdfLut.get());
+        bgfx::setTexture(6, m_impl->Resources.SpecularSampler.get(), m_impl->Resources.SpecularEnvironmentMap.get());
+        bgfx::setTexture(7, m_impl->Resources.DiffuseSampler.get(), m_impl->Resources.DiffuseEnvironmentMap.get());
 
    /*     bgfx::TextureHandle* shaderRes ources[] = {
             m_impl->Resources.BrdfLut.get(), m_impl->Resources.SpecularEnvironmentMap.get(), m_impl->Resources.DiffuseEnvironmentMap.get()};
@@ -424,11 +428,11 @@ namespace Pbr {
         // I dereference because .get returns a pointer to the flag but I need the actual flag to or it
         // Set blend state
         m_impl->Resources.StateFlags =
-            m_impl->Resources.StateFlags | (blended ? *m_impl->Resources.AlphaBlendState.get() : *m_impl->Resources.DefaultBlendState.get());
+            m_impl->Resources.StateFlags | (blended ? m_impl->Resources.AlphaBlendState : m_impl->Resources.DefaultBlendState);
         // Set Rasterizer State
         m_impl->Resources.StateFlags =
-            m_impl->Resources.StateFlags | *m_impl->Resources.RasterizerStates[doubleSided ? 1 : 0][wireframe ? 1 : 0]
-                                                                 [m_impl->WindingOrder == FrontFaceWindingOrder::CounterClockWise ? 1 : 0].get();
+            m_impl->Resources.StateFlags | m_impl->Resources.RasterizerStates[doubleSided ? 1 : 0][wireframe ? 1 : 0]
+                                                                 [m_impl->WindingOrder == FrontFaceWindingOrder::CounterClockWise ? 1 : 0];
         // Set Depth Stencil State
         m_impl->Resources.StateFlags = disableDepthWrite ? m_impl->Resources.StateFlags : m_impl->Resources.StateFlags | BGFX_STATE_WRITE_R;
         m_impl->Resources.StateFlags = m_impl->Resources.StateFlags | BGFX_STATE_WRITE_MASK |

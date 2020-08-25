@@ -18,7 +18,7 @@ namespace {
         std::vector<uint8_t> tempBuffer;
         const uint8_t* rgbaBuffer = GltfHelper::ReadImageAsRGBA(image, &tempBuffer);
         if (rgbaBuffer == nullptr) {
-            return unique_bgfx_handle(nullptr);
+            return unique_bgfx_handle<bgfx::TextureHandle>(bgfx::kInvalidHandle);
 
         }
 
@@ -84,7 +84,8 @@ namespace {
         samplerDesc.MinLOD = 0;
         samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;*/
 
-        unique_bgfx_handle<bgfx::UniformHandle> samplerState = unique_bgfx_handle(bgfx::createUniform(_name,bgfx::UniformType::Sampler));
+        unique_bgfx_handle<bgfx::UniformHandle> samplerState =
+            unique_bgfx_handle<bgfx::UniformHandle>(bgfx::createUniform(_name, bgfx::UniformType::Sampler));
         //Pbr::Internal::ThrowIfFailed(device->CreateSamplerState(&samplerDesc, samplerState.put()));
         return samplerState;
     }
@@ -204,20 +205,22 @@ namespace Gltf {
                                            bool sRGB,
                                            Pbr::RGBAColor defaultRGBA) {
                         // Find or load the image referenced by the texture.
+                        
                         const ImageKey imageKey = std::make_tuple(texture.Image, sRGB);
+                        unique_bgfx_handle<bgfx::TextureHandle> textureView = std::move(imageMap[imageKey]);
                         if (!imageMap[imageKey]) // If not cached, load the image and store it in the texture cache.
 
                         {
                             // TODO: Generate mipmaps if sampler's minification filter (minFilter) uses mipmapping.
                             // TODO: If texture is not power-of-two and (sampler has wrapping=repeat/mirrored_repeat OR minFilter uses
                             // mipmapping), resize to power-of-two.
-                            auto textureView = texture.Image != nullptr ? LoadImage(*texture.Image, sRGB)
+                            textureView = texture.Image != nullptr ? LoadImage(*texture.Image, sRGB)
                                                                    : pbrResources.CreateSolidColorTexture(defaultRGBA);
                             imageMap[imageKey] = std::move(textureView);
                         }
 
                         // Find or create the sampler referenced by the texture.
-                        unique_bgfx_handle<bgfx::UniformHandle> samplerState = unique_bgfx_handle(samplerMap[texture.Sampler]);
+                        unique_bgfx_handle<bgfx::UniformHandle> samplerState(samplerMap[texture.Sampler].get());
 
                         if (!samplerState) // If not cached, create the sampler and store it in the sampler cache.
                         {
@@ -227,7 +230,7 @@ namespace Gltf {
                             samplerMap[texture.Sampler] = std::move(samplerState);
                         }
 
-                        pbrMaterial->SetTexture(slot, &textureView.Get(), &samplerState.Get());
+                        pbrMaterial->SetTexture(slot, &textureView.get(), &samplerState.get());
                     };
 
                     pbrMaterial->Name = gltfMaterial.name;

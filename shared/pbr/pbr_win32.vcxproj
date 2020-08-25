@@ -354,7 +354,7 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
+  <!--<ItemGroup>
     <None Include="packages.config" />
     <None Include="Shaders\Shared.sc">
       <FileType>Document</FileType>
@@ -411,7 +411,7 @@
       <HeaderFileOutput>$(IntDir)\%(Filename).h</HeaderFileOutput>
       <ObjectFileOutput />
     </FxCompile>
-  </ItemGroup>
+  </ItemGroup>-->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="AfterBuild">
     <Copy SourceFiles="brdf_lut.png" DestinationFolder="$(OutDir)" SkipUnchangedFiles="True" />

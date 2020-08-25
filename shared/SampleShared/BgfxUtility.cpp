@@ -78,7 +78,7 @@ namespace sample::bg {
         }
     }
 
-    SwapchainD3D11 CreateSwapchainD3D11(XrSession session,
+    SwapchainD3D11 __stdcall CreateSwapchainD3D11(XrSession session,
                                         DXGI_FORMAT format,
                                         int32_t width,
                                         int32_t height,
@@ -124,7 +124,9 @@ namespace sample::bg {
         return swapchain;
     }
 
-    std::tuple<XrGraphicsBindingD3D11KHR, winrt::com_ptr<ID3D11Device>, winrt::com_ptr<ID3D11DeviceContext>>
+    std::tuple<XrGraphicsBindingD3D11KHR,
+               winrt::com_ptr<ID3D11Device>,
+               winrt::com_ptr<ID3D11DeviceContext>> __stdcall
     BgfxCreateD3D11Binding(XrInstance instance,
                        XrSystemId systemId,
                        const xr::ExtensionContext& extensions,

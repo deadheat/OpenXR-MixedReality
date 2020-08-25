@@ -14,6 +14,13 @@
 //
 //*********************************************************
 #pragma once
+#include "pch.h"
+#include "BgfxUtility.h"
+#include "Trace.h"
+
+#pragma comment(lib, "D3DCompiler.lib")
+
+#include <DirectXMath.h>
 
 #include <memory>
 
@@ -21,7 +28,8 @@
 #include <d3dcommon.h>  //ID3DBlob
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrExtensionContext.h>
-#include "wil/resource.h"
+//#include <wil/resource.h>
+#include "../../packages/Microsoft.Windows.ImplementationLibrary.1.0.200519.2/include/wil/resource.h"
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 
