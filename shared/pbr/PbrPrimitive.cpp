@@ -30,9 +30,7 @@ namespace {
         return (UINT)(sizeof(decltype(Pbr::PrimitiveBuilder::Vertices)::value_type) * size);
     }
 
-   unique_bgfx_handle<bgfx::VertexBufferHandle> CreateVertexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder,
-
-                                                    bool updatableBuffers) {
+    bgfx::VertexBufferHandle CreateVertexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder, bool updatableBuffers) {
         // Create Vertex Buffer BGFX
         bgfx::VertexLayout vertexLayout;
         vertexLayout.begin()
@@ -44,47 +42,46 @@ namespace {
             .end();
 
         //// Create Vertex Buffer
-        //D3D11_BUFFER_DESC desc{};
-        //desc.Usage = D3D11_USAGE_DEFAULT;
-        //desc.ByteWidth = GetPbrVertexByteSize(primitiveBuilder.Vertices.size());
-        //desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        // D3D11_BUFFER_DESC desc{};
+        // desc.Usage = D3D11_USAGE_DEFAULT;
+        // desc.ByteWidth = GetPbrVertexByteSize(primitiveBuilder.Vertices.size());
+        // desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
-        //if (updatableBuffers) {
+        // if (updatableBuffers) {
         //    desc.Usage = D3D11_USAGE_DYNAMIC;
         //    desc.CPUAccessFlags |= D3D11_CPU_ACCESS_WRITE;
         //}
 
-        //D3D11_SUBRESOURCE_DATA initData{};
-        //initData.pSysMem = primitiveBuilder.Vertices.data();
+        // D3D11_SUBRESOURCE_DATA initData{};
+        // initData.pSysMem = primitiveBuilder.Vertices.data();
 
-        //unique_bgfx_handle<bgfx::VertexBufferHandle> vertexBuffer;
-        //bgfx::VertexBufferHandle rawVertexBuffer = 
-        //    
-        //vertexBuffer.copy_from(&rawVertexBuffer);
-        return unique_bgfx_handle<bgfx::VertexBufferHandle>(bgfx::createVertexBuffer(bgfx::makeRef(primitiveBuilder.Vertices.data(), sizeof(primitiveBuilder.Vertices.data())), vertexLayout));
+        // unique_bgfx_handle<bgfx::VertexBufferHandle> vertexBuffer;
+        // bgfx::VertexBufferHandle rawVertexBuffer =
+        //
+        // vertexBuffer.copy_from(&rawVertexBuffer);
+        return bgfx::createVertexBuffer(bgfx::makeRef(primitiveBuilder.Vertices.data(), sizeof(primitiveBuilder.Vertices.data())),
+                                        vertexLayout);
     }
 
-     unique_bgfx_handle<bgfx::IndexBufferHandle> CreateIndexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder
+    bgfx::IndexBufferHandle CreateIndexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder
 
-                                                   /*,bool updatableBuffers*/) {
+                                              /*,bool updatableBuffers*/) {
         // Create bgfx Index Buffer
         // Create Index Buffer
-        //D3D11_BUFFER_DESC desc{};
-        //desc.Usage = D3D11_USAGE_DEFAULT;
-        //desc.ByteWidth = (UINT)(sizeof(decltype(primitiveBuilder.Indices)::value_type) * primitiveBuilder.Indices.size());
-        //desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        // D3D11_BUFFER_DESC desc{};
+        // desc.Usage = D3D11_USAGE_DEFAULT;
+        // desc.ByteWidth = (UINT)(sizeof(decltype(primitiveBuilder.Indices)::value_type) * primitiveBuilder.Indices.size());
+        // desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
-        //if (updatableBuffers) {
+        // if (updatableBuffers) {
         //    desc.Usage = D3D11_USAGE_DYNAMIC;
         //    desc.CPUAccessFlags |= D3D11_CPU_ACCESS_WRITE;
         //}
 
-       /* D3D11_SUBRESOURCE_DATA initData{};
-        initData.pSysMem = primitiveBuilder.Indices.data();*/
+        /* D3D11_SUBRESOURCE_DATA initData{};
+         initData.pSysMem = primitiveBuilder.Indices.data();*/
 
-    
-        return unique_bgfx_handle<bgfx::IndexBufferHandle>(
-            bgfx::createIndexBuffer(bgfx::makeRef(primitiveBuilder.Indices.data(), sizeof(primitiveBuilder.Indices.data()))));
+        return bgfx::createIndexBuffer(bgfx::makeRef(primitiveBuilder.Indices.data(), sizeof(primitiveBuilder.Indices.data())));
     }
 } // namespace
 
@@ -106,8 +103,8 @@ namespace Pbr {
                          std::shared_ptr<Pbr::Material> material,
                          bool updatableBuffers)
         : Primitive((UINT)primitiveBuilder.Indices.size(),
-                    CreateIndexBuffer(primitiveBuilder/*, updatableBuffers*/),
-                    CreateVertexBuffer(primitiveBuilder, updatableBuffers),
+                    shared_bgfx_handle<bgfx::IndexBufferHandle>(CreateIndexBuffer(primitiveBuilder /*, updatableBuffers*/)),
+                    shared_bgfx_handle<bgfx::VertexBufferHandle>(CreateVertexBuffer(primitiveBuilder, updatableBuffers)),
                     std::move(material)) {
     }
 
@@ -116,7 +113,7 @@ namespace Pbr {
     }
 
     void Primitive::UpdateBuffers(const Pbr::PrimitiveBuilder& primitiveBuilder) {
-        //TODO figure out how to implement updatable logic
+        // TODO figure out how to implement updatable logic
         // Update vertex buffer.
         {
             /*D3D11_BUFFER_DESC vertDesc;
@@ -124,9 +121,10 @@ namespace Pbr {
 
             UINT requiredSize = GetPbrVertexByteSize(primitiveBuilder.Vertices.size());
             if (false /*vertDesc.ByteWidth >= requiredSize*/) {
-                //context->UpdateSubresource(m_vertexBuffer.get(), 0, nullptr, primitiveBuilder.Vertices.data(), requiredSize, requiredSize);
+                // context->UpdateSubresource(m_vertexBuffer.get(), 0, nullptr, primitiveBuilder.Vertices.data(), requiredSize,
+                // requiredSize);
             } else {
-                m_vertexBuffer = CreateVertexBuffer(primitiveBuilder, true);
+                m_vertexBuffer.reset(CreateVertexBuffer(primitiveBuilder, true));
             }
         }
 
@@ -137,21 +135,20 @@ namespace Pbr {
 
             UINT requiredSize = (UINT)(primitiveBuilder.Indices.size() * sizeof(decltype(primitiveBuilder.Indices)::value_type));
             if (false /*idxDesc.ByteWidth >= requiredSize*/) {
-                //context->UpdateSubresource(m_indexBuffer.get(), 0, nullptr, primitiveBuilder.Indices.data(), requiredSize, requiredSize);
+                // context->UpdateSubresource(m_indexBuffer.get(), 0, nullptr, primitiveBuilder.Indices.data(), requiredSize, requiredSize);
             } else {
-                m_indexBuffer = CreateIndexBuffer(primitiveBuilder);
+                m_indexBuffer.reset(CreateIndexBuffer(primitiveBuilder));
             }
 
             m_indexCount = (UINT)primitiveBuilder.Indices.size();
         }
     }
-    
-    
+
     void Primitive::Render() const {
-        //const UINT stride = sizeof(Pbr::Vertex);
-        //const UINT offset = 0;
-        bgfx::VertexBufferHandle* const vertexBuffers[] = {&m_vertexBuffer.get()};
-        bgfx::setVertexBuffer(0, *vertexBuffers[0], 0, sizeof(vertexBuffers)/sizeof(bgfx::VertexBufferHandle*));
+        // const UINT stride = sizeof(Pbr::Vertex);
+        // const UINT offset = 0;
+        // bgfx::VertexBufferHandle* const vertexBuffers[] = {&m_vertexBuffer.get()};
+        bgfx::setVertexBuffer(0, m_vertexBuffer.get(), 0, 1);
         bgfx::setIndexBuffer(m_indexBuffer.get());
         /*context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
         context->IASetIndexBuffer(m_indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);

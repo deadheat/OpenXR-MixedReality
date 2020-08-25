@@ -39,7 +39,7 @@ namespace Pbr {
         static_assert((sizeof(ConstantBufferData) % 16) == 0, "Constant Buffer must be divisible by 16 bytes");
 
         // Create a uninitialized material. Textures and shader coefficients must be set.
-        Material();
+        Material(Pbr::Resources const& pbrResources);
 
         // Create a clone of this material.
         std::shared_ptr<Material> Clone(Pbr::Resources const& pbrResources) const;
@@ -53,8 +53,8 @@ namespace Pbr {
 
         // Set a Metallic-Roughness texture.
         void SetTexture(ShaderSlots::PSMaterial slot,
-                        _In_ bgfx::TextureHandle* textureView,
-                        _In_opt_ bgfx::UniformHandle* sampler = nullptr);
+                        _In_ shared_bgfx_handle<bgfx::TextureHandle> textureView,
+                        _In_opt_ shared_bgfx_handle<bgfx::UniformHandle> sampler = shared_bgfx_handle<bgfx::UniformHandle>());
 
         void SetDoubleSided(bool doubleSided);
         void SetWireframe(bool wireframeMode);
@@ -82,8 +82,8 @@ namespace Pbr {
         bgfx::UniformHandle m_emissiveAlphaCutoff;
 
         static constexpr size_t TextureCount = ShaderSlots::LastMaterialSlot + 1;
-        std::array<shared_bgfx_handle<bgfx::TextureHandle>, TextureCount> m_textures;
-        std::array<shared_bgfx_handle<bgfx::UniformHandle>, TextureCount> m_samplers;
+        std::vector<shared_bgfx_handle<bgfx::TextureHandle>> m_textures;
+        std::vector<shared_bgfx_handle<bgfx::UniformHandle>> m_samplers;
         shared_bgfx_handle<bgfx::UniformHandle> m_constantBuffer;
     };
 } // namespace Pbr

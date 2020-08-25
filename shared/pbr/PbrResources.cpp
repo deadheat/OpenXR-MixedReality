@@ -36,7 +36,7 @@ namespace {
     };
 
     struct ModelConstantUniform {
-        //alignas(16) 
+        // alignas(16)
         DirectX::XMFLOAT4X4 ModelToWorld;
     };
 } // namespace
@@ -48,10 +48,8 @@ const bgfx::EmbeddedShader s_embeddedShaders[] = {BGFX_EMBEDDED_SHADER(fs_PbrPix
                                                   BGFX_EMBEDDED_SHADER_END()};
 namespace Pbr {
     struct Resources::Impl {
-        
         void Initialize() {
-
-            //Internal::ThrowIfFailed(device->CreateInputLayout(Pbr::Vertex::s_vertexDesc,
+            // Internal::ThrowIfFailed(device->CreateInputLayout(Pbr::Vertex::s_vertexDesc,
             //                                                  ARRAYSIZE(Pbr::Vertex::s_vertexDesc),
             //                                                  g_PbrVertexShader,
             //                                                  sizeof(g_PbrVertexShader),
@@ -67,18 +65,14 @@ namespace Pbr {
                 .end();
             // Set up pixel shader.
             bgfx::RendererType::Enum type = bgfx::RendererType::Direct3D11;
-            Resources.PbrPixelShader = unique_bgfx_handle<bgfx::ShaderHandle>(bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_PbrPixelShader"));
-            
-            Resources.HighlightPixelShader =
-                unique_bgfx_handle<bgfx::ShaderHandle>(bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_HighlightPixelShader"));
+            Resources.PbrPixelShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_PbrPixelShader"));
 
-            Resources.PbrVertexShader =
-                unique_bgfx_handle<bgfx::ShaderHandle>(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_PbrVertexShader"));
+            Resources.HighlightPixelShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_HighlightPixelShader"));
 
-            Resources.PbrVertexShader =
-                unique_bgfx_handle<bgfx::ShaderHandle>(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_HighlightVertexShader"));
+            Resources.PbrVertexShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_PbrVertexShader"));
 
- 
+            Resources.PbrVertexShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_HighlightVertexShader"));
+
             // Seyi NOTE: since there are no constant buffers in bgfx, will find some type of way to implement without
 
             /*uniform mat4 u_viewProjection;
@@ -86,11 +80,9 @@ namespace Pbr {
             uniform mat3 u_highlightPositionLightDirectionLightColor;
             uniform vec4 u_numSpecularMipLevelsAnimationTime;*/
 
-            Resources.AllUniformHandles.ViewProjection = 
-                bgfx::createUniform("u_viewProjection", bgfx::UniformType::Mat4, 1);
-            Resources.AllUniformHandles.EyePosition =
-                bgfx::createUniform("u_eyePosition", bgfx::UniformType::Vec4, 1);
-            Resources.AllUniformHandles.HighlightPositionLightDirectionLightColor = 
+            Resources.AllUniformHandles.ViewProjection = bgfx::createUniform("u_viewProjection", bgfx::UniformType::Mat4, 1);
+            Resources.AllUniformHandles.EyePosition = bgfx::createUniform("u_eyePosition", bgfx::UniformType::Vec4, 1);
+            Resources.AllUniformHandles.HighlightPositionLightDirectionLightColor =
                 bgfx::createUniform("u_highlightPositionLightDirectionLightColor", bgfx::UniformType::Mat3, 1);
             Resources.AllUniformHandles.NumSpecularMipLevelsAnimationTime =
                 bgfx::createUniform("u_numSpecularMipLevelsAnimationTime", bgfx::UniformType::Vec4, 1);
@@ -98,23 +90,22 @@ namespace Pbr {
             const CD3D11_BUFFER_DESC pbrConstantBufferDesc(sizeof(SceneConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
             Internal::ThrowIfFailed(device->CreateBuffer(&pbrConstantBufferDesc, nullptr, Resources.SceneConstantBuffer.put()));*/
 
-            Resources.AllUniformHandles.ModelToWorld = 
-                bgfx::createUniform("u_modelToWorld", bgfx::UniformType::Mat4, 1);
+            Resources.AllUniformHandles.ModelToWorld = bgfx::createUniform("u_modelToWorld", bgfx::UniformType::Mat4, 1);
             /*static_assert((sizeof(ModelConstantBuffer) % 16) == 0, "Constant Buffer must be divisible by 16 bytes");
             const CD3D11_BUFFER_DESC modelConstantBufferDesc(sizeof(ModelConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
             Internal::ThrowIfFailed(device->CreateBuffer(&modelConstantBufferDesc, nullptr, Resources.ModelConstantBuffer.put()));*/
 
-            //ID3D11Device* device = (ID3D11Device*)bgfx::getInternalData()->context;
+            // ID3D11Device* device = (ID3D11Device*)bgfx::getInternalData()->context;
             // Samplers for environment map and BRDF.
-            Resources.EnvironmentMapSampler = Texture::CreateSampler("EnvironmentMapSampler");
+            Resources.EnvironmentMapSampler.reset(Texture::CreateSampler("EnvironmentMapSampler"));
 
-            Resources.MetallicRoughnessSampler = Texture::CreateSampler("u_metallicRoughnessTexture");
-            Resources.NormalSampler = Texture::CreateSampler("u_normalTexture");
-            Resources.OcclusionSampler = Texture::CreateSampler("u_occlusionTexture");
-            Resources.EmissiveSampler = Texture::CreateSampler("u_emissiveTexture");
-            Resources.BRDFSampler = Texture::CreateSampler("u_BRDFTexture");
-            Resources.SpecularSampler = Texture::CreateSampler("u_specularTexture");
-            Resources.DiffuseSampler = Texture::CreateSampler("u_diffuseTexture");
+            Resources.MetallicRoughnessSampler.reset(Texture::CreateSampler("u_metallicRoughnessTexture"));
+            Resources.NormalSampler.reset(Texture::CreateSampler("u_normalTexture"));
+            Resources.OcclusionSampler.reset(Texture::CreateSampler("u_occlusionTexture"));
+            Resources.EmissiveSampler.reset(Texture::CreateSampler("u_emissiveTexture"));
+            Resources.BRDFSampler.reset(Texture::CreateSampler("u_BRDFTexture"));
+            Resources.SpecularSampler.reset(Texture::CreateSampler("u_specularTexture"));
+            Resources.DiffuseSampler.reset(Texture::CreateSampler("u_diffuseTexture"));
 
             uint64_t defaultState = BGFX_STATE_DEFAULT;
             Resources.DefaultBlendState = defaultState;
@@ -122,11 +113,10 @@ namespace Pbr {
             // Internal::ThrowIfFailed(device->CreateBlendState(&blendStateDesc, Resources.DefaultBlendState.put()));
 
             uint64_t rtBlendMode =
-                BGFX_STATE_DEFAULT |
-                BGFX_STATE_BLEND_EQUATION_ADD |
-                BGFX_STATE_BLEND_FUNC_SEPARATE(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA,BGFX_STATE_BLEND_ZERO,BGFX_STATE_BLEND_ONE) |
-                BGFX_STATE_WRITE_RGB | 
-                BGFX_STATE_WRITE_A;
+                BGFX_STATE_DEFAULT | BGFX_STATE_BLEND_EQUATION_ADD |
+                BGFX_STATE_BLEND_FUNC_SEPARATE(
+                    BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA, BGFX_STATE_BLEND_ZERO, BGFX_STATE_BLEND_ONE) |
+                BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A;
             Resources.AlphaBlendState = rtBlendMode;
             // D3D11_RENDER_TARGET_BLEND_DESC rtBlendDesc;
             // rtBlendDesc.BlendEnable = TRUE;
@@ -140,20 +130,20 @@ namespace Pbr {
             // for (UINT i = 0; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i) {
             //    blendStateDesc.RenderTarget[i] = rtBlendDesc;
             //}
-            //Internal::ThrowIfFailed(device->CreateBlendState(&blendStateDesc, Resources.AlphaBlendState.put()));
+            // Internal::ThrowIfFailed(device->CreateBlendState(&blendStateDesc, Resources.AlphaBlendState.put()));
 
             for (bool doubleSided : {false, true}) {
                 for (bool wireframe : {false, true}) {
                     for (bool frontCounterClockwise : {false, true}) {
-                        //Seyi NOTE: Wireframe is set in debugging in bgfx and not rasterizer so find a way to implement
+                        // Seyi NOTE: Wireframe is set in debugging in bgfx and not rasterizer so find a way to implement
                         uint64_t rastState = BGFX_STATE_DEFAULT;
                         rastState = doubleSided ? rastState : rastState | BGFX_STATE_CULL_CCW;
                         Resources.RasterizerStates[doubleSided][wireframe][frontCounterClockwise] = rastState;
-                        //CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
-                        //rasterizerDesc.CullMode = doubleSided ? D3D11_CULL_NONE : D3D11_CULL_BACK;
-                        //rasterizerDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
-                        //rasterizerDesc.FrontCounterClockwise = frontCounterClockwise;
-                        //Internal::ThrowIfFailed(device->CreateRasterizerState(
+                        // CD3D11_RASTERIZER_DESC rasterizerDesc(D3D11_DEFAULT);
+                        // rasterizerDesc.CullMode = doubleSided ? D3D11_CULL_NONE : D3D11_CULL_BACK;
+                        // rasterizerDesc.FillMode = wireframe ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
+                        // rasterizerDesc.FrontCounterClockwise = frontCounterClockwise;
+                        // Internal::ThrowIfFailed(device->CreateRasterizerState(
                         //    &rasterizerDesc, Resources.RasterizerStates[doubleSided][wireframe][frontCounterClockwise].put()));
                     }
                 }
@@ -163,7 +153,7 @@ namespace Pbr {
                 for (bool noWrite : {false, true}) {
                     uint64_t rastState = BGFX_STATE_DEFAULT;
                     rastState = rastState | (reverseZ ? BGFX_STATE_DEPTH_TEST_GREATER : BGFX_STATE_DEPTH_TEST_LESS);
-                    rastState = rastState | ( noWrite ? rastState : BGFX_STATE_WRITE_R);
+                    rastState = rastState | (noWrite ? rastState : BGFX_STATE_WRITE_R);
                     Resources.DepthStencilStates[reverseZ][noWrite] = rastState;
                 }
             }
@@ -172,21 +162,20 @@ namespace Pbr {
         struct DeviceResources {
             unique_bgfx_handle<bgfx::UniformHandle> EnvironmentMapSampler;
 
-
             unique_bgfx_handle<bgfx::UniformHandle> MetallicRoughnessSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> NormalSampler; 
+            unique_bgfx_handle<bgfx::UniformHandle> NormalSampler;
             unique_bgfx_handle<bgfx::UniformHandle> OcclusionSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> EmissiveSampler; 
+            unique_bgfx_handle<bgfx::UniformHandle> EmissiveSampler;
             unique_bgfx_handle<bgfx::UniformHandle> BRDFSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> SpecularSampler; 
+            unique_bgfx_handle<bgfx::UniformHandle> SpecularSampler;
             unique_bgfx_handle<bgfx::UniformHandle> DiffuseSampler;
             unique_bgfx_handle<bgfx::ProgramHandle> ShaderProgram;
-            //winrt::com_ptr<bgfx::VertexLayout> InputLayout;
+            // winrt::com_ptr<bgfx::VertexLayout> InputLayout;
             unique_bgfx_handle<bgfx::ShaderHandle> PbrVertexShader;
             unique_bgfx_handle<bgfx::ShaderHandle> PbrPixelShader;
             unique_bgfx_handle<bgfx::ShaderHandle> HighlightVertexShader;
             unique_bgfx_handle<bgfx::ShaderHandle> HighlightPixelShader;
-            //winrt::com_ptr<ID3D11Buffer> SceneConstantBuffer;
+            // winrt::com_ptr<ID3D11Buffer> SceneConstantBuffer;
             SceneUniforms SceneUniforms;
             UniformHandles AllUniformHandles;
             ModelConstantUniform ModelConstantUniform;
@@ -198,7 +187,7 @@ namespace Pbr {
             uint64_t RasterizerStates[2][2][2]; // Three dimensions for [DoubleSide][Wireframe][FrontCounterClockWise]
             uint64_t StateFlags;
             uint64_t DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
-            mutable std::map<uint32_t, unique_bgfx_handle<bgfx::TextureHandle>> SolidColorTextureCache;
+            mutable std::map<uint32_t, shared_bgfx_handle<bgfx::TextureHandle>> SolidColorTextureCache;
         };
 
         mutable DeviceResources Resources;
@@ -224,8 +213,8 @@ namespace Pbr {
 
     Resources::~Resources() = default;
 
-    void Resources::SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut) {
-        m_impl->Resources.BrdfLut = unique_bgfx_handle<bgfx::TextureHandle>(*brdfLut);
+    void Resources::SetBrdfLut(_In_ unique_bgfx_handle<bgfx::TextureHandle>&& brdfLut) {
+        m_impl->Resources.BrdfLut = std::move(brdfLut);
     }
 
     void Resources::CreateDeviceDependentResources() {
@@ -236,8 +225,7 @@ namespace Pbr {
         m_impl->Resources = {};
     }
 
-
-    //winrt::com_ptr<ID3D11Device> Resources::GetDevice() const {
+    // winrt::com_ptr<ID3D11Device> Resources::GetDevice() const {
     //    winrt::com_ptr<ID3D11Device> device;
     //    //m_impl->Resources.SceneConstantBuffer->GetDevice(device.put());
     //    return device;
@@ -246,10 +234,9 @@ namespace Pbr {
     void Resources::SubmitProgram() const {
         // Need to submit program somehow
         //(*pbrResources.m_impl.get()).Resources
-        bgfx::submit(0,m_impl->Resources.ShaderProgram.get());
+        bgfx::submit(0, m_impl->Resources.ShaderProgram.get());
         // ;
     }
-
 
     void Resources::SetLight(DirectX::XMFLOAT3 direction, RGBColor diffuseColor) {
         // Setting light direction first
@@ -278,9 +265,9 @@ namespace Pbr {
     }
 
     void XM_CALLCONV Resources::SetModelToWorld(DirectX::FXMMATRIX modelToWorld) const {
-        //XMStoreFloat4x4(&m_impl->ModelBuffer.ModelToWorld, XMMatrixTranspose(modelToWorld));
+        // XMStoreFloat4x4(&m_impl->ModelBuffer.ModelToWorld, XMMatrixTranspose(modelToWorld));
         bgfx::setUniform(m_impl->Resources.AllUniformHandles.ModelToWorld, &modelToWorld, 1);
-        //context->UpdateSubresource(m_impl->Resources.ModelConstantBuffer.get(), 0, nullptr, &m_impl->ModelBuffer, 0, 0);
+        // context->UpdateSubresource(m_impl->Resources.ModelConstantBuffer.get(), 0, nullptr, &m_impl->ModelBuffer, 0, 0);
     }
     // DirectX::XMFLOAT4X4 u_viewProjection;
     // float[4] u_eyePosition;
@@ -291,31 +278,30 @@ namespace Pbr {
         XMStoreFloat4(&m_impl->SceneUniformsInstance.u_eyePosition, XMMatrixInverse(nullptr, view).r[3]);
     }
 
-    void Resources::SetEnvironmentMap(_In_ bgfx::TextureHandle* specularEnvironmentMap,
-                                      _In_ bgfx::TextureHandle* diffuseEnvironmentMap,
+    void Resources::SetEnvironmentMap(_In_ unique_bgfx_handle<bgfx::TextureHandle>&& specularEnvironmentMap,
+                                      _In_ unique_bgfx_handle<bgfx::TextureHandle>&& diffuseEnvironmentMap,
                                       std::map<std::string, bgfx::TextureInfo>& textureInformation) {
         // D3D11_SHADER_RESOURCE_VIEW_DESC desc;
         // diffuseEnvironmentMap->GetDesc(&desc);
         // Seyi NOTE: Not checking to see if it is a cube map, could be a source of errors
-        
-        
-        //if (!diffuseEnvironmentMap->cubeMap /*desc.ViewDimension != D3D_SRV_DIMENSION_TEXTURECUBE*/) {
+
+        // if (!diffuseEnvironmentMap->cubeMap /*desc.ViewDimension != D3D_SRV_DIMENSION_TEXTURECUBE*/) {
         //    // throw std::exception("Diffuse Resource View Type is not D3D_SRV_DIMENSION_TEXTURECUBE");
         //    throw std::exception("Diffuse Resource View Type is not cubeMap");
         //}
 
         //// specularEnvironmentMap->GetDesc(&desc);
-        //if (!specularEnvironmentMap->cubeMap /*desc.ViewDimension != D3D_SRV_DIMENSION_TEXTURECUBE*/) {
+        // if (!specularEnvironmentMap->cubeMap /*desc.ViewDimension != D3D_SRV_DIMENSION_TEXTURECUBE*/) {
         //    throw std::exception("Specular Resource View Type is not cubeMap");
         //}
 
         // m_impl->SceneBuffer.NumSpecularMipLevels = desc.TextureCube.MipLevels;
         m_impl->SceneUniformsInstance.u_numSpecularMipLevelsAnimationTime[0] = textureInformation["specularEnvironmentView"].numMips;
-        m_impl->Resources.SpecularEnvironmentMap = unique_bgfx_handle<bgfx::TextureHandle>(*specularEnvironmentMap);
-        m_impl->Resources.DiffuseEnvironmentMap = unique_bgfx_handle<bgfx::TextureHandle>(*diffuseEnvironmentMap);
+        m_impl->Resources.SpecularEnvironmentMap = std::move(specularEnvironmentMap);
+        m_impl->Resources.DiffuseEnvironmentMap = std::move(diffuseEnvironmentMap);
     }
 
-    unique_bgfx_handle<bgfx::TextureHandle> Resources::CreateSolidColorTexture(RGBAColor color) const {
+    shared_bgfx_handle<bgfx::TextureHandle> Resources::CreateSolidColorTexture(RGBAColor color) const {
         const std::array<uint8_t, 4> rgba = Texture::LoadRGBAUI4(color);
 
         // Check cache to see if this flat texture already exists.
@@ -324,15 +310,15 @@ namespace Pbr {
             std::lock_guard guard(m_impl->m_cacheMutex);
             auto textureIt = m_impl->Resources.SolidColorTextureCache.find(colorKey);
             if (textureIt != m_impl->Resources.SolidColorTextureCache.end()) {
-                return std::move(textureIt->second);
+                return textureIt->second;
             }
         }
 
-        unique_bgfx_handle<bgfx::TextureHandle> texture =
-            Pbr::Texture::CreateTexture(rgba.data(), 1, 1, 1, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
+        shared_bgfx_handle<bgfx::TextureHandle> texture(
+            Pbr::Texture::CreateTexture(rgba.data(), 1, 1, 1, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM)));
         std::lock_guard guard(m_impl->m_cacheMutex);
         // If the key already exists then the existing texture will be returned.
-        return std::move(m_impl->Resources.SolidColorTextureCache.emplace(colorKey, texture).first->second);
+        return m_impl->Resources.SolidColorTextureCache.emplace(colorKey, texture).first->second;
     }
     /*uniform mat4 u_viewProjection;
             uniform vec4 u_eyePosition;
@@ -340,27 +326,27 @@ namespace Pbr {
             uniform vec4 u_numSpecularMipLevelsAnimationTime;*/
 
     // DirectX::XMFLOAT4X4 u_viewProjection;
-    //DirectX::XMFLOAT4 u_eyePosition;
-    //float[3][3] u_highlightPositionLightDirectionLightColor;
-    //float[4] u_numSpecularMipLevelsAnimationTime;
+    // DirectX::XMFLOAT4 u_eyePosition;
+    // float[3][3] u_highlightPositionLightDirectionLightColor;
+    // float[4] u_numSpecularMipLevelsAnimationTime;
 
     void Resources::Bind() const {
-        //context->UpdateSubresource(m_impl->Resources.SceneConstantBuffer.get(), 0, nullptr, &m_impl->SceneBuffer, 0, 0);
+        // context->UpdateSubresource(m_impl->Resources.SceneConstantBuffer.get(), 0, nullptr, &m_impl->SceneBuffer, 0, 0);
         bgfx::setUniform(m_impl->Resources.AllUniformHandles.ViewProjection, &m_impl->SceneUniformsInstance.u_viewProjection);
         bgfx::setUniform(m_impl->Resources.AllUniformHandles.EyePosition, &m_impl->SceneUniformsInstance.u_eyePosition);
         bgfx::setUniform(m_impl->Resources.AllUniformHandles.HighlightPositionLightDirectionLightColor,
-                   &m_impl->SceneUniformsInstance.u_highlightPositionLightDirectionLightColor);
+                         &m_impl->SceneUniformsInstance.u_highlightPositionLightDirectionLightColor);
         bgfx::setUniform(m_impl->Resources.AllUniformHandles.NumSpecularMipLevelsAnimationTime,
-                   &m_impl->SceneUniformsInstance.u_numSpecularMipLevelsAnimationTime);
+                         &m_impl->SceneUniformsInstance.u_numSpecularMipLevelsAnimationTime);
         bgfx::setUniform(m_impl->Resources.AllUniformHandles.ModelToWorld, &m_impl->ModelBuffer.ModelToWorld);
 
-   /*     if (m_impl->Shading == ShadingMode::Highlight) {
-            context->VSSetShader(m_impl->Resources.HighlightVertexShader.get(), nullptr, 0);
-            context->PSSetShader(m_impl->Resources.HighlightPixelShader.get(), nullptr, 0);
-        } else {
-            context->VSSetShader(m_impl->Resources.PbrVertexShader.get(), nullptr, 0);
-            context->PSSetShader(m_impl->Resources.PbrPixelShader.get(), nullptr, 0);
-        }*/
+        /*     if (m_impl->Shading == ShadingMode::Highlight) {
+                 context->VSSetShader(m_impl->Resources.HighlightVertexShader.get(), nullptr, 0);
+                 context->PSSetShader(m_impl->Resources.HighlightPixelShader.get(), nullptr, 0);
+             } else {
+                 context->VSSetShader(m_impl->Resources.PbrVertexShader.get(), nullptr, 0);
+                 context->PSSetShader(m_impl->Resources.PbrPixelShader.get(), nullptr, 0);
+             }*/
 
         bgfx::ShaderHandle vsh;
         bgfx::ShaderHandle fsh;
@@ -373,8 +359,7 @@ namespace Pbr {
             fsh = std::move(m_impl->Resources.PbrPixelShader.get());
         }
 
-        m_impl->Resources.ShaderProgram =
-            unique_bgfx_handle<bgfx::ProgramHandle>(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
+        m_impl->Resources.ShaderProgram.reset(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
 
         /*ID3D11Buffer* vsBuffers[] = {m_impl->Resources.SceneConstantBuffer.get(), m_impl->Resources.ModelConstantBuffer.get()};
         context->VSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(vsBuffers), vsBuffers);
@@ -389,11 +374,11 @@ namespace Pbr {
         bgfx::setTexture(6, m_impl->Resources.SpecularSampler.get(), m_impl->Resources.SpecularEnvironmentMap.get());
         bgfx::setTexture(7, m_impl->Resources.DiffuseSampler.get(), m_impl->Resources.DiffuseEnvironmentMap.get());
 
-   /*     bgfx::TextureHandle* shaderRes ources[] = {
-            m_impl->Resources.BrdfLut.get(), m_impl->Resources.SpecularEnvironmentMap.get(), m_impl->Resources.DiffuseEnvironmentMap.get()};
-        context->PSSetShaderResources(Pbr::ShaderSlots::Brdf, _countof(shaderResources), shaderResources);
-        ID3D11SamplerState* samplers[] = {m_impl->Resources.BrdfSampler.get(), m_impl->Resources.EnvironmentMapSampler.get()};
-        context->PSSetSamplers(ShaderSlots::Brdf, _countof(samplers), samplers);*/
+        /*     bgfx::TextureHandle* shaderRes ources[] = {
+                 m_impl->Resources.BrdfLut.get(), m_impl->Resources.SpecularEnvironmentMap.get(),
+           m_impl->Resources.DiffuseEnvironmentMap.get()}; context->PSSetShaderResources(Pbr::ShaderSlots::Brdf, _countof(shaderResources),
+           shaderResources); ID3D11SamplerState* samplers[] = {m_impl->Resources.BrdfSampler.get(),
+           m_impl->Resources.EnvironmentMapSampler.get()}; context->PSSetSamplers(ShaderSlots::Brdf, _countof(samplers), samplers);*/
     }
 
     void Resources::SetShadingMode(ShadingMode mode) {
@@ -431,8 +416,9 @@ namespace Pbr {
             m_impl->Resources.StateFlags | (blended ? m_impl->Resources.AlphaBlendState : m_impl->Resources.DefaultBlendState);
         // Set Rasterizer State
         m_impl->Resources.StateFlags =
-            m_impl->Resources.StateFlags | m_impl->Resources.RasterizerStates[doubleSided ? 1 : 0][wireframe ? 1 : 0]
-                                                                 [m_impl->WindingOrder == FrontFaceWindingOrder::CounterClockWise ? 1 : 0];
+            m_impl->Resources.StateFlags |
+            m_impl->Resources.RasterizerStates[doubleSided ? 1 : 0][wireframe ? 1 : 0]
+                                              [m_impl->WindingOrder == FrontFaceWindingOrder::CounterClockWise ? 1 : 0];
         // Set Depth Stencil State
         m_impl->Resources.StateFlags = disableDepthWrite ? m_impl->Resources.StateFlags : m_impl->Resources.StateFlags | BGFX_STATE_WRITE_R;
         m_impl->Resources.StateFlags = m_impl->Resources.StateFlags | BGFX_STATE_WRITE_MASK |
@@ -440,22 +426,23 @@ namespace Pbr {
                                        BGFX_STATE_CULL_CCW;
         bgfx::setState(m_impl->Resources.StateFlags);
     }
-    //void Resources::SetBlendState(_In_ ID3D11DeviceContext* context, bool enabled) const {
+    // void Resources::SetBlendState(_In_ ID3D11DeviceContext* context, bool enabled) const {
     //    context->OMSetBlendState(
     //        enabled ? m_impl->Resources.AlphaBlendState.get() : m_impl->Resources.DefaultBlendState.get(), nullptr, 0xFFFFFF);
     //}
 
-    //void Resources::SetRasterizerState(_In_ ID3D11DeviceContext* context, bool doubleSided, bool wireframe) const {
+    // void Resources::SetRasterizerState(_In_ ID3D11DeviceContext* context, bool doubleSided, bool wireframe) const {
     //    context->RSSetState(m_impl->Resources
     //                            .RasterizerStates[doubleSided ? 1 : 0][wireframe ? 1 : 0]
     //                                             [m_impl->WindingOrder == FrontFaceWindingOrder::CounterClockWise ? 1 : 0]
     //                            .get());
     //}
 
-    //void Resources::SetDepthStencilState(bool disableDepthWrite) const {
-    //    m_impl->Resources.StateFlags = disableDepthWrite ? m_impl->Resources.StateFlags : m_impl->Resources.StateFlags | BGFX_STATE_WRITE_R;
-    //    m_impl->Resources.StateFlags = m_impl->Resources.StateFlags |
+    // void Resources::SetDepthStencilState(bool disableDepthWrite) const {
+    //    m_impl->Resources.StateFlags = disableDepthWrite ? m_impl->Resources.StateFlags : m_impl->Resources.StateFlags |
+    //    BGFX_STATE_WRITE_R; m_impl->Resources.StateFlags = m_impl->Resources.StateFlags |
     //        BGFX_STATE_WRITE_MASK | (reversedZ ? BGFX_STATE_DEPTH_TEST_GREATER : BGFX_STATE_DEPTH_TEST_LESS) | BGFX_STATE_CULL_CCW;
-    //    //context->OMSetDepthStencilState(m_impl->Resources.DepthStencilStates[m_impl->ReverseZ ? 1 : 0][disableDepthWrite ? 1 : 0].get(), 1);
+    //    //context->OMSetDepthStencilState(m_impl->Resources.DepthStencilStates[m_impl->ReverseZ ? 1 : 0][disableDepthWrite ? 1 : 0].get(),
+    //    1);
     //}
 } // namespace Pbr

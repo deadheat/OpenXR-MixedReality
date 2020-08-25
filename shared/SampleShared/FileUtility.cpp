@@ -101,9 +101,9 @@ namespace sample {
 
         // Read the BRDF Lookup Table used by the PBR system into a DirectX texture.
         std::vector<byte> brdfLutFileData = ReadFileBytes(FindFileInAppFolder(L"brdf_lut.png", {"", L"Pbr_uwp"}));
-        unique_bgfx_handle<bgfx::TextureHandle> brdLutResourceView =
-            Pbr::Texture::LoadTextureImage(brdfLutFileData.data(), (uint32_t)brdfLutFileData.size());
-        pbrResources.SetBrdfLut(&brdLutResourceView.get());
+        unique_bgfx_handle<bgfx::TextureHandle> brdLutResourceView;
+        brdLutResourceView.reset(Pbr::Texture::LoadTextureImage(brdfLutFileData.data(), (uint32_t)brdfLutFileData.size()));
+        pbrResources.SetBrdfLut(std::move(brdLutResourceView));
         unique_bgfx_handle<bgfx::TextureHandle> diffuseTextureView;
         unique_bgfx_handle<bgfx::TextureHandle> specularTextureView;
         std::map<std::string, bgfx::TextureInfo> textureInformation;
@@ -127,11 +127,11 @@ namespace sample {
                                                           nullptr,
                                                           specularTextureView.put()));*/
         } else {
-            diffuseTextureView = Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White);
-            specularTextureView = Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White);
+            diffuseTextureView.reset(Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White));
+            specularTextureView.reset(Pbr::Texture::CreateFlatCubeTexture(Pbr::RGBA::White));
         }
 
-        pbrResources.SetEnvironmentMap(&specularTextureView.get(), &diffuseTextureView.get(), textureInformation);
+        pbrResources.SetEnvironmentMap(std::move(specularTextureView), std::move(diffuseTextureView), textureInformation);
 
         return pbrResources;
     }

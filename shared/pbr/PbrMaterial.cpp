@@ -11,14 +11,19 @@ using namespace DirectX;
 
 
 namespace Pbr {
-    Material::Material() {
+    Material::Material(Pbr::Resources const& pbrResources) {
         //const CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ConstantBufferData), D3D11_BIND_CONSTANT_BUFFER);
         bgfx::createUniform("u_baseColorFactor", bgfx::UniformType::Vec4);
         bgfx::createUniform("u_metallicRoughnessNormalOcclusion", bgfx::UniformType::Vec4);
         bgfx::createUniform("u_emissiveAlphaCutoff", bgfx::UniformType::Vec4);
 
         //Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_constantBuffer.put()));
-        //m_constantBuffer = bgfx::createUniform("ConstantBufferData", bgfx::UniformType::Count, sizeof(ConstantBufferData)) 
+        //m_constantBuffer = bgfx::createUniform("ConstantBufferData", bgfx::UniformType::Count, sizeof(ConstantBufferData))
+
+        for (size_t i = 0; i < TextureCount; i ++) {
+            m_textures.emplace_back(bgfx::kInvalidHandle);
+            m_samplers.emplace_back(bgfx::kInvalidHandle);
+        }
     }
 
     std::shared_ptr<Material> Material::Clone(Pbr::Resources const& pbrResources) const {
@@ -56,25 +61,25 @@ namespace Pbr {
 
 
         // Seyi NOTE: I dont think this is putting the right samplers in place, should modify later
-        const unique_bgfx_handle<bgfx::UniformHandle> defaultSampler = Pbr::Texture::CreateSampler("defaultSampler");
-        material->SetTexture(ShaderSlots::BaseColor, &pbrResources.CreateSolidColorTexture(RGBA::White).get(), &defaultSampler.get());
-        material->SetTexture(ShaderSlots::MetallicRoughness, &pbrResources.CreateSolidColorTexture(RGBA::White).get(), &defaultSampler.get());
+        shared_bgfx_handle<bgfx::UniformHandle> defaultSampler(Pbr::Texture::CreateSampler("defaultSampler"));
+        material->SetTexture(ShaderSlots::BaseColor, pbrResources.CreateSolidColorTexture(RGBA::White), defaultSampler);
+        material->SetTexture(ShaderSlots::MetallicRoughness, pbrResources.CreateSolidColorTexture(RGBA::White), defaultSampler);
         // No occlusion.
-        material->SetTexture(ShaderSlots::Occlusion, &pbrResources.CreateSolidColorTexture(RGBA::White).get(), &defaultSampler.get());
+        material->SetTexture(ShaderSlots::Occlusion, pbrResources.CreateSolidColorTexture(RGBA::White), defaultSampler);
         // Flat normal.
-        material->SetTexture(ShaderSlots::Normal,&pbrResources.CreateSolidColorTexture(RGBA::FlatNormal).get(), &defaultSampler.get());
-        material->SetTexture(ShaderSlots::Emissive, &pbrResources.CreateSolidColorTexture(RGBA::White).get(), &defaultSampler.get());
+        material->SetTexture(ShaderSlots::Normal,pbrResources.CreateSolidColorTexture(RGBA::FlatNormal), defaultSampler);
+        material->SetTexture(ShaderSlots::Emissive, pbrResources.CreateSolidColorTexture(RGBA::White), defaultSampler);
 
         return material;
     }
 
     void Material::SetTexture(ShaderSlots::PSMaterial slot,
-                              _In_ bgfx::TextureHandle* textureView,
-                              _In_opt_ bgfx::UniformHandle* sampler) {
-        m_textures[slot] = unique_bgfx_handle<bgfx::TextureHandle>(*textureView);
+                              _In_ shared_bgfx_handle<bgfx::TextureHandle> textureView,
+                              _In_opt_ shared_bgfx_handle<bgfx::UniformHandle> sampler) {
+        m_textures[slot] = std::move(textureView);
 
         if (sampler) {
-            m_samplers[slot] = unique_bgfx_handle<bgfx::UniformHandle>(*sampler);
+            m_samplers[slot] = std::move(sampler);
         }
     }
 
@@ -123,12 +128,8 @@ namespace Pbr {
         //context->PSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Material, 1, psConstantBuffers);
         //static_assert(Pbr::ShaderSlots::BaseColor == 0, "BaseColor must be the first slot");
 
-        std::array < bgfx::TextureHandle*, TextureCount > textures;
-        std::transform(m_textures.begin(), m_textures.end(), textures.begin(), [](const auto& texture) { return &texture.get(); });
-        std::array<bgfx::UniformHandle*, TextureCount> samplers;
-        std::transform(m_samplers.begin(), m_samplers.end(), samplers.begin(), [](const auto& sampler) { return &sampler.get(); });
-        for (unsigned int i = 0; i < samplers.size(); i++) {
-            bgfx::setTexture(i, *samplers[i], *textures[i]);
+        for (unsigned int i = 0; i < m_samplers.size(); i++) {
+            bgfx::setTexture(i, m_samplers[i].get(), m_textures[i].get());
         }
         //setUniform(textures[0], textures.data(), (UINT)textures.size());
         //context->PSSetShaderResources(Pbr::ShaderSlots::BaseColor, (UINT)textures.size(), textures.data()  );

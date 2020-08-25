@@ -52,9 +52,18 @@ namespace Pbr {
 
     PrimitiveBuilder& PrimitiveBuilder::AddAxis(float axisLength, float axisThickness, Pbr::NodeIndex_t transformIndex) {
         AddCube(axisThickness + 0.01f, transformIndex, Pbr::FromSRGB(DirectX::Colors::Gray));
-        AddCube({axisLength, axisThickness, axisThickness}, DirectX::XMVECTORF32{axisLength / 2, 0, 0}, transformIndex, Pbr::FromSRGB(DirectX::Colors::Red));
-        AddCube({axisThickness, axisLength, axisThickness}, DirectX::XMVECTORF32{0, axisLength / 2, 0}, transformIndex, Pbr::FromSRGB(DirectX::Colors::Green));
-        AddCube({axisThickness, axisThickness, axisLength}, DirectX::XMVECTORF32{0, 0, axisLength / 2}, transformIndex, Pbr::FromSRGB(DirectX::Colors::Blue));
+        AddCube({axisLength, axisThickness, axisThickness},
+                DirectX::XMVECTORF32{axisLength / 2, 0, 0},
+                transformIndex,
+                Pbr::FromSRGB(DirectX::Colors::Red));
+        AddCube({axisThickness, axisLength, axisThickness},
+                DirectX::XMVECTORF32{0, axisLength / 2, 0},
+                transformIndex,
+                Pbr::FromSRGB(DirectX::Colors::Green));
+        AddCube({axisThickness, axisThickness, axisLength},
+                DirectX::XMVECTORF32{0, 0, axisLength / 2},
+                transformIndex,
+                Pbr::FromSRGB(DirectX::Colors::Blue));
 
         return *this;
     }
@@ -135,8 +144,10 @@ namespace Pbr {
     }
 
     // Based on code from DirectXTK
-    PrimitiveBuilder&
-    PrimitiveBuilder::AddCube(DirectX::XMFLOAT3 sideLengths, DirectX::CXMVECTOR translation, Pbr::NodeIndex_t transformIndex, RGBAColor vertexColor) {
+    PrimitiveBuilder& PrimitiveBuilder::AddCube(DirectX::XMFLOAT3 sideLengths,
+                                                DirectX::CXMVECTOR translation,
+                                                Pbr::NodeIndex_t transformIndex,
+                                                RGBAColor vertexColor) {
         // A box has six faces, each one pointing in a different direction.
         const int FaceCount = 6;
 
@@ -177,11 +188,11 @@ namespace Pbr {
             Indices.push_back((uint32_t)vbase + 0);
             Indices.push_back((uint32_t)vbase + 2);
             Indices.push_back((uint32_t)vbase + 3);
-            //using namespace DirectX;
+            // using namespace DirectX;
             const DirectX::XMVECTOR positions[4] = {{(normal - side1 - side2) * sideLengthHalfVector},
-                                           {(normal - side1 + side2) * sideLengthHalfVector},
-                                           {(normal + side1 + side2) * sideLengthHalfVector},
-                                           {(normal + side1 - side2) * sideLengthHalfVector}};
+                                                    {(normal - side1 + side2) * sideLengthHalfVector},
+                                                    {(normal + side1 + side2) * sideLengthHalfVector},
+                                                    {(normal + side1 - side2) * sideLengthHalfVector}};
 
             for (int j = 0; j < 4; j++) {
                 Pbr::Vertex vert;
@@ -212,9 +223,9 @@ namespace Pbr {
                                                 RGBAColor vertexColor) {
         const DirectX::XMFLOAT2 halfSideLength = {sideLengths.x / 2, sideLengths.y / 2};
         const DirectX::XMFLOAT3 vertices[4] = {{-halfSideLength.x, -halfSideLength.y, 0}, // LB
-                                      {-halfSideLength.x, halfSideLength.y, 0},  // LT
-                                      {halfSideLength.x, halfSideLength.y, 0},   // RT
-                                      {halfSideLength.x, -halfSideLength.y, 0}}; // RB
+                                               {-halfSideLength.x, halfSideLength.y, 0},  // LT
+                                               {halfSideLength.x, halfSideLength.y, 0},   // RT
+                                               {halfSideLength.x, -halfSideLength.y, 0}}; // RB
         const DirectX::XMFLOAT2 uvs[4] = {
             {0, textureCoord.y},
             {0, 0},
@@ -251,8 +262,7 @@ namespace Pbr {
             return std::array<uint8_t, 4>{(uint8_t)colorf.x, (uint8_t)colorf.y, (uint8_t)colorf.z, (uint8_t)colorf.w};
         }
 
-        unique_bgfx_handle<bgfx::TextureHandle> LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData,
-                                                                  uint32_t fileSize) {
+        bgfx::TextureHandle LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData, uint32_t fileSize) {
             auto freeImageData = [](unsigned char* ptr) { ::free(ptr); };
             using stbi_unique_ptr = std::unique_ptr<unsigned char, decltype(freeImageData)>;
 
@@ -265,54 +275,35 @@ namespace Pbr {
                 throw std::exception("Failed to load image file data.");
             }
 
-            return CreateTexture(rgbaData.get(),
-                                 w * h * DesiredComponentCount,
-                                 w,
-                                 h,
-                                 sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
+            return CreateTexture(
+                rgbaData.get(), w * h * DesiredComponentCount, w, h, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
         }
 
-        unique_bgfx_handle<bgfx::TextureHandle> CreateFlatCubeTexture(RGBAColor color,
-                                                                       bgfx::TextureFormat::Enum format) {
-            
-            
+        bgfx::TextureHandle CreateFlatCubeTexture(RGBAColor color, bgfx::TextureFormat::Enum format) {
             // Each side is a 1x1 pixel (RGBA) image.
             const std::array<uint8_t, 4> rgbaColor = LoadRGBAUI4(color);
-            unique_bgfx_handle<bgfx::TextureHandle> textureView;
-            textureView = unique_bgfx_handle<bgfx::TextureHandle>(
-                bgfx::createTextureCube(1 /*_size*/,
-                                        true /*bool _hasMips*/,
-                                        6 /*_numLayers*/,
-                                        format,
-                                        /*uint64_t _flags = */BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE | BGFX_CAPS_TEXTURE_CUBE_ARRAY,
-                                        bgfx::makeRef(&rgbaColor, sizeof(rgbaColor) /*constMemory* _mem = NULL*/)));
-            return textureView;
+            return bgfx::createTextureCube(1 /*_size*/,
+                                           true /*bool _hasMips*/,
+                                           6 /*_numLayers*/,
+                                           format,
+                                           /*uint64_t _flags = */ BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE | BGFX_CAPS_TEXTURE_CUBE_ARRAY,
+                                           bgfx::makeRef(&rgbaColor, sizeof(rgbaColor) /*constMemory* _mem = NULL*/));
         }
 
-        unique_bgfx_handle<bgfx::TextureHandle>
-        CreateTexture(_In_reads_bytes_(size) const uint8_t* rgba,
-                                                               uint32_t size,
-                                                               int width,
-                                                               int height,
-                                                               bgfx::TextureFormat::Enum format) {
-            unique_bgfx_handle<bgfx::TextureHandle> textureView;
-            textureView =
-                unique_bgfx_handle<bgfx::TextureHandle>(bgfx::createTexture2D(width,
-                                  height,
-                                  true/*_hasMips*/,
-                                  1 /*_numLayers*/,
-                                  format /*TextureFormat::Enum_format*/,
-                                  /*uint64_t _flags = */BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE,
-                                  bgfx::makeRef(rgba , sizeof(rgba))));
-            return textureView;
+        bgfx::TextureHandle
+        CreateTexture(_In_reads_bytes_(size) const uint8_t* rgba, uint32_t size, int width, int height, bgfx::TextureFormat::Enum format) {
+            return bgfx::createTexture2D(width,
+                                         height,
+                                         true /*_hasMips*/,
+                                         1 /*_numLayers*/,
+                                         format /*TextureFormat::Enum_format*/,
+                                         /*uint64_t _flags = */ BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE,
+                                         bgfx::makeRef(rgba, sizeof(rgba)));
         }
-        
-        //from what I can tell this is handled internally in bgfx, but I could be wrong
-        unique_bgfx_handle<bgfx::UniformHandle> CreateSampler(const char* _uniqueName) {
-            bgfx::UniformHandle sampler = bgfx::createUniform(_uniqueName, bgfx::UniformType::Sampler);
-            unique_bgfx_handle<bgfx::UniformHandle> samplerState;
-            samplerState = unique_bgfx_handle<bgfx::UniformHandle>(sampler);
-            return samplerState;
+
+        // from what I can tell this is handled internally in bgfx, but I could be wrong
+        bgfx::UniformHandle CreateSampler(const char* _uniqueName) {
+            return bgfx::createUniform(_uniqueName, bgfx::UniformType::Sampler);
         }
     } // namespace Texture
 } // namespace Pbr

@@ -13,17 +13,17 @@ using namespace DirectX;
 
 namespace {
     // Create a DirectX texture view from a tinygltf Image.
-    unique_bgfx_handle<bgfx::TextureHandle> LoadImage(const tinygltf::Image& image, bool sRGB) {
+    bgfx::TextureHandle LoadImage(const tinygltf::Image& image, bool sRGB) {
         // First convert the image to RGBA if it isn't already.
         std::vector<uint8_t> tempBuffer;
         const uint8_t* rgbaBuffer = GltfHelper::ReadImageAsRGBA(image, &tempBuffer);
         if (rgbaBuffer == nullptr) {
-            return unique_bgfx_handle<bgfx::TextureHandle>(bgfx::kInvalidHandle);
-
+            return {bgfx::kInvalidHandle};
         }
 
         const DXGI_FORMAT format = sRGB ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
-        return Pbr::Texture::CreateTexture(rgbaBuffer, image.width * image.height * 4, image.width, image.height, sample::bg::DxgiFormatToBgfxFormat(format));
+        return Pbr::Texture::CreateTexture(
+            rgbaBuffer, image.width * image.height * 4, image.width, image.height, sample::bg::DxgiFormatToBgfxFormat(format));
     }
 
     D3D11_FILTER ConvertFilter(int glMinFilter, int glMagFilter) {
@@ -63,8 +63,7 @@ namespace {
     }
 
     // Create a Bgfx sampler state from a tinygltf Sampler.
-    unique_bgfx_handle<bgfx::UniformHandle> CreateSampler(const char * _name, const tinygltf::Model& gltfModel,
-                                                     const tinygltf::Sampler& sampler) {
+    bgfx::UniformHandle CreateSampler(const char* _name, const tinygltf::Model& gltfModel, const tinygltf::Sampler& sampler) {
         // Seyi NOTE: I should be giving all this information to the texture being created
 
         /*D3D11_SAMPLER_DESC samplerDesc{};
@@ -84,9 +83,8 @@ namespace {
         samplerDesc.MinLOD = 0;
         samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;*/
 
-        unique_bgfx_handle<bgfx::UniformHandle> samplerState =
-            unique_bgfx_handle<bgfx::UniformHandle>(bgfx::createUniform(_name, bgfx::UniformType::Sampler));
-        //Pbr::Internal::ThrowIfFailed(device->CreateSamplerState(&samplerDesc, samplerState.put()));
+        auto samplerState = bgfx::createUniform(_name, bgfx::UniformType::Sampler);
+        // Pbr::Internal::ThrowIfFailed(device->CreateSamplerState(&samplerDesc, samplerState.put()));
         return samplerState;
     }
 
@@ -179,8 +177,8 @@ namespace Gltf {
         {
             // Create D3D cache for reuse of texture views and samplers when possible.
             using ImageKey = std::tuple<const tinygltf::Image*, bool>; // Item1 is a pointer to the image, Item2 is sRGB.
-            std::map<ImageKey, unique_bgfx_handle<bgfx::TextureHandle>> imageMap;
-            std::map<const tinygltf::Sampler*, unique_bgfx_handle<bgfx::UniformHandle>> samplerMap;
+            std::map<ImageKey, shared_bgfx_handle<bgfx::TextureHandle>> imageMap;
+            std::map<const tinygltf::Sampler*, shared_bgfx_handle<bgfx::UniformHandle>> samplerMap;
 
             // primitiveBuilderMap is grouped by material. Loop through the referenced materials and load their resources. This will only
             // load materials which are used by the active scene.
@@ -200,46 +198,54 @@ namespace Gltf {
 
                     // Read a tinygltf texture and sampler into the Pbr Material.
                     auto loadTexture = [&](const char* _name,
-                        Pbr::ShaderSlots::PSMaterial slot,
+                                           Pbr::ShaderSlots::PSMaterial slot,
                                            const GltfHelper::Material::Texture& texture,
                                            bool sRGB,
                                            Pbr::RGBAColor defaultRGBA) {
                         // Find or load the image referenced by the texture.
-                        
+
                         const ImageKey imageKey = std::make_tuple(texture.Image, sRGB);
-                        unique_bgfx_handle<bgfx::TextureHandle> textureView = std::move(imageMap[imageKey]);
+                        shared_bgfx_handle<bgfx::TextureHandle> textureView = imageMap[imageKey];
                         if (!imageMap[imageKey]) // If not cached, load the image and store it in the texture cache.
 
                         {
                             // TODO: Generate mipmaps if sampler's minification filter (minFilter) uses mipmapping.
                             // TODO: If texture is not power-of-two and (sampler has wrapping=repeat/mirrored_repeat OR minFilter uses
                             // mipmapping), resize to power-of-two.
-                            textureView = texture.Image != nullptr ? LoadImage(*texture.Image, sRGB)
-                                                                   : pbrResources.CreateSolidColorTexture(defaultRGBA);
-                            imageMap[imageKey] = std::move(textureView);
+                            textureView = texture.Image != nullptr
+                                              ? shared_bgfx_handle<bgfx::TextureHandle>(LoadImage(*texture.Image, sRGB))
+                                              : pbrResources.CreateSolidColorTexture(defaultRGBA);
+                            imageMap[imageKey] = textureView;
                         }
 
                         // Find or create the sampler referenced by the texture.
-                        unique_bgfx_handle<bgfx::UniformHandle> samplerState(samplerMap[texture.Sampler].get());
+                        shared_bgfx_handle<bgfx::UniformHandle> samplerState = samplerMap[texture.Sampler];
 
                         if (!samplerState) // If not cached, create the sampler and store it in the sampler cache.
                         {
-                            samplerState = texture.Sampler != nullptr
-                                               ? CreateSampler(_name, gltfModel, *texture.Sampler)
-                                               : Pbr::Texture::CreateSampler(_name);
-                            samplerMap[texture.Sampler] = std::move(samplerState);
+                            samplerState.reset(texture.Sampler != nullptr ? CreateSampler(_name, gltfModel, *texture.Sampler)
+                                                                          : Pbr::Texture::CreateSampler(_name));
+                            samplerMap[texture.Sampler] = samplerState;
                         }
 
-                        pbrMaterial->SetTexture(slot, &textureView.get(), &samplerState.get());
+                        pbrMaterial->SetTexture(slot, textureView, samplerState);
                     };
 
                     pbrMaterial->Name = gltfMaterial.name;
 
-                    loadTexture("u_baseColorTexture", Pbr::ShaderSlots::BaseColor, material.BaseColorTexture, true /* sRGB */, Pbr::RGBA::White);
-                    loadTexture("u_metallicRoughnessTexture",Pbr::ShaderSlots::MetallicRoughness, material.MetallicRoughnessTexture, false /* sRGB */, Pbr::RGBA::White);
-                    loadTexture("u_emissiveTexture",Pbr::ShaderSlots::Emissive, material.EmissiveTexture, true /* sRGB */, Pbr::RGBA::White);
-                    loadTexture("u_normalTexture", Pbr::ShaderSlots::Normal, material.NormalTexture, false /* sRGB */, Pbr::RGBA::FlatNormal);
-                    loadTexture("u_occlusionTexture", Pbr::ShaderSlots::Occlusion, material.OcclusionTexture, false /* sRGB */, Pbr::RGBA::White);
+                    loadTexture(
+                        "u_baseColorTexture", Pbr::ShaderSlots::BaseColor, material.BaseColorTexture, true /* sRGB */, Pbr::RGBA::White);
+                    loadTexture("u_metallicRoughnessTexture",
+                                Pbr::ShaderSlots::MetallicRoughness,
+                                material.MetallicRoughnessTexture,
+                                false /* sRGB */,
+                                Pbr::RGBA::White);
+                    loadTexture(
+                        "u_emissiveTexture", Pbr::ShaderSlots::Emissive, material.EmissiveTexture, true /* sRGB */, Pbr::RGBA::White);
+                    loadTexture(
+                        "u_normalTexture", Pbr::ShaderSlots::Normal, material.NormalTexture, false /* sRGB */, Pbr::RGBA::FlatNormal);
+                    loadTexture(
+                        "u_occlusionTexture", Pbr::ShaderSlots::Occlusion, material.OcclusionTexture, false /* sRGB */, Pbr::RGBA::White);
 
                     pbrMaterial->SetDoubleSided(material.DoubleSided);
                     pbrMaterial->SetAlphaBlended(material.AlphaMode == GltfHelper::AlphaMode::Blend);

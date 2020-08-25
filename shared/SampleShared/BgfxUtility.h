@@ -28,8 +28,7 @@
 #include <d3dcommon.h>  //ID3DBlob
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrExtensionContext.h>
-//#include <wil/resource.h>
-#include "../../packages/Microsoft.Windows.ImplementationLibrary.1.0.200519.2/include/wil/resource.h"
+#include <wil/resource.h>
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
 
@@ -38,7 +37,6 @@
 
 template <typename bgfx_handle_t>
 struct bgfx_handle_wrapper_t : public bgfx_handle_t {
-
     bgfx_handle_wrapper_t(const bgfx_handle_t& handle) {
         this->idx = handle.idx;
     }
@@ -52,9 +50,7 @@ struct bgfx_handle_wrapper_t : public bgfx_handle_t {
     }
 };
 
-template <typename bgfx_handle_t,
-          typename close_fn_t = void (*)(bgfx_handle_t),
-          close_fn_t close_fn = bgfx::destroy>
+template <typename bgfx_handle_t, typename close_fn_t = void (*)(bgfx_handle_t), close_fn_t close_fn = bgfx::destroy>
 using unique_bgfx_handle = wil::unique_any<bgfx_handle_wrapper_t<bgfx_handle_t>,
                                            close_fn_t,
                                            close_fn,

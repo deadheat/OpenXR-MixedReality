@@ -71,7 +71,7 @@ namespace Pbr {
         void SubmitProgram() const ;
         // Sets the Bidirectional Reflectance Distribution Function Lookup Table texture, required by the shader to compute surface
         // reflectance from the IBL.
-        void SetBrdfLut(_In_ bgfx::TextureHandle* brdfLut);
+        void SetBrdfLut(_In_ unique_bgfx_handle<bgfx::TextureHandle>&& brdfLut);
 
         // Create device-dependent resources.
         void CreateDeviceDependentResources();
@@ -93,8 +93,8 @@ namespace Pbr {
         void StartHighlightAnimation(DirectX::XMFLOAT3 location, Duration currentTotalTimeElapsed);
 
         // Set the specular and diffuse image-based lighting (IBL) maps. ShaderResourceViews must be TextureCubes.
-        void SetEnvironmentMap(_In_ bgfx::TextureHandle* specularEnvironmentMap,
-                               _In_ bgfx::TextureHandle* diffuseEnvironmentMap,
+        void SetEnvironmentMap(_In_ unique_bgfx_handle<bgfx::TextureHandle>&& specularEnvironmentMap,
+                               _In_ unique_bgfx_handle<bgfx::TextureHandle>&& diffuseEnvironmentMap,
                                std::map<std::string, bgfx::TextureInfo>& textureInformation);
 
         // Set the current view and projection matrices.
@@ -102,7 +102,7 @@ namespace Pbr {
 
         // Many 1x1 pixel colored textures are used in the PBR system. This is used to create textures backed by a cache to reduce the
         // number of textures created.
-        unique_bgfx_handle<bgfx::TextureHandle> CreateSolidColorTexture(RGBAColor color) const;
+        shared_bgfx_handle<bgfx::TextureHandle> CreateSolidColorTexture(RGBAColor color) const;
 
         // Bind the the PBR resources to the current context.
         void Bind() const;

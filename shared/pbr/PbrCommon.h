@@ -89,16 +89,16 @@ namespace Pbr {
     namespace Texture {
         std::array<uint8_t, 4> LoadRGBAUI4(RGBAColor color);
 
-        unique_bgfx_handle<bgfx::TextureHandle> LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData,
+        bgfx::TextureHandle LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData,
                                                                   uint32_t fileSize);
-        unique_bgfx_handle<bgfx::TextureHandle> CreateFlatCubeTexture(
+        bgfx::TextureHandle CreateFlatCubeTexture(
             RGBAColor color, bgfx::TextureFormat::Enum format = sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
-        unique_bgfx_handle<bgfx::TextureHandle>
+        bgfx::TextureHandle
         CreateTexture(_In_reads_bytes_(size) const uint8_t* rgba,
                                                                uint32_t size,
                                                                int width,
                                                                int height,
                                                                bgfx::TextureFormat::Enum format);
-        unique_bgfx_handle<bgfx::UniformHandle> CreateSampler(const char* _uniqueName);
+        bgfx::UniformHandle CreateSampler(const char* _uniqueName);
     } // namespace Texture
 } // namespace Pbr
