@@ -2,7 +2,7 @@
  * Copyright 2011-2020 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
-
+#include "pch.h"
 #include "entry_p.h"
 
 #if ENTRY_CONFIG_USE_NATIVE && BX_PLATFORM_ANDROID
@@ -108,8 +108,8 @@ namespace entry
 
 		virtual bool open(const bx::FilePath& _filePath, bx::Error* _err) override
 		{
-			BX_ASSERT(NULL != _err, "Reader/Writer interface calling functions must handle errors.");
-
+			//BX_ASSERT(NULL != _err, "Reader/Writer interface calling functions must handle errors.");
+            assert(NULL != _err);
 			if (NULL != m_file)
 			{
 				BX_ERROR_SET(_err, bx::kErrorReaderWriterAlreadyOpen, "FileReader: File is already open.");
@@ -139,15 +139,18 @@ namespace entry
 
 		virtual int64_t seek(int64_t _offset, bx::Whence::Enum _whence) override
 		{
-			BX_ASSERT(NULL != m_file, "Reader/Writer file is not open.");
+			//BX_ASSERT(NULL != m_file, "Reader/Writer file is not open.");
+            assert(NULL != m_file);
 			return AAsset_seek64(m_file, _offset, _whence);
 
 		}
 
 		virtual int32_t read(void* _data, int32_t _size, bx::Error* _err) override
 		{
-			BX_ASSERT(NULL != m_file, "Reader/Writer file is not open.");
-			BX_ASSERT(NULL != _err, "Reader/Writer interface calling functions must handle errors.");
+			//BX_ASSERT(NULL != m_file, "Reader/Writer file is not open.");
+                    assert(NULL != m_file);
+			//BX_ASSERT(NULL != _err, "Reader/Writer interface calling functions must handle errors.");
+                    assert(NULL != _err);
 
 			int32_t size = (int32_t)AAsset_read(m_file, _data, _size);
 			if (size != _size)
@@ -555,7 +558,8 @@ namespace entry
 		BX_UNUSED(_thread);
 
 		int32_t result = chdir("/sdcard/bgfx/examples/runtime");
-		BX_ASSERT(0 == result, "Failed to chdir to dir. android.permission.WRITE_EXTERNAL_STORAGE?", errno);
+		//BX_ASSERT(0 == result, "Failed to chdir to dir. android.permission.WRITE_EXTERNAL_STORAGE?", errno);
+                assert(0 == result);
 
 		MainThreadEntry* self = (MainThreadEntry*)_userData;
 		result = main(self->m_argc, self->m_argv);

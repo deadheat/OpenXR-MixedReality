@@ -2,6 +2,7 @@
  * Copyright 2011-2020 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
+#include "pch.h"
 
 #include "entry_p.h"
 
@@ -157,7 +158,8 @@ namespace entry
 
 	static void initTranslateKey(uint16_t _sdl, Key::Enum _key)
 	{
-		BX_ASSERT(_sdl < BX_COUNTOF(s_translateKey), "Out of bounds %d.", _sdl);
+		//BX_ASSERT(_sdl < BX_COUNTOF(s_translateKey), "Out of bounds %d.", _sdl);
+        assert(_sdl < BX_COUNTOF(s_translateKey) );
 		s_translateKey[_sdl&0xff] = (uint8_t)_key;
 	}
 

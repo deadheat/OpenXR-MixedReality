@@ -1,4 +1,5 @@
 // This file is part of meshoptimizer library; see meshoptimizer.h for version/license details
+#include "pch.h"
 #include "meshoptimizer.h"
 
 #include <assert.h>

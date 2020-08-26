@@ -2,7 +2,7 @@
  * Copyright 2010-2020 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
-
+#include "pch.h"
 #include <bx/allocator.h>
 #include <bx/filepath.h>
 #include <bx/string.h>

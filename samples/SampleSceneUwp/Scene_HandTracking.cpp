@@ -223,7 +223,7 @@ namespace {
                 } else {
                     // Update vertices and indices of the existing hand mesh scene object's primitive.
                     handData.MeshSceneObject->GetModel()->GetPrimitive(0).UpdateBuffers(
-                        m_sceneContext.Device.get(), m_sceneContext.DeviceContext.get(), meshBuilder);
+                        meshBuilder);
                 }
             }
 

@@ -2,6 +2,7 @@
  * Copyright 2010-2020 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
+#include "pch.h"
 
 #include <memory.h>
 

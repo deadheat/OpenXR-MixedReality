@@ -265,13 +265,13 @@ bgfx::TextureHandle loadTexture(const wchar_t* _name, uint64_t _flags, uint8_t _
 	return loadTexture(entry::getFileReader(), _name, _flags, _skip, _info, _orientation);
 }
 
-bimg::ImageContainer* imageLoad(const char* _filePath, bgfx::TextureFormat::Enum _dstFormat)
-{
-	uint32_t size = 0;
-	void* data = loadMem(entry::getFileReader(), entry::getAllocator(), _filePath, &size);
-
-	return bimg::imageParse(entry::getAllocator(), data, size, bimg::TextureFormat::Enum(_dstFormat) );
-}
+//bimg::ImageContainer* imageLoad(const char* _filePath, bgfx::TextureFormat::Enum _dstFormat)
+//{
+//	uint32_t size = 0;
+//	void* data = loadMem(entry::getFileReader(), entry::getAllocator(), _filePath, &size);
+//
+//	return bimg::imageParse(entry::getAllocator(), data, size, bimg::TextureFormat::Enum(_dstFormat) );
+//}
 
 void calcTangents(void* _vertices, uint16_t _numVertices, bgfx::VertexLayout _layout, const uint16_t* _indices, uint32_t _numIndices)
 {

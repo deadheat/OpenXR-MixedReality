@@ -2,6 +2,7 @@
  * Copyright 2011-2020 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
+#include "pch.h"
 
 #include "entry_p.h"
 
@@ -24,7 +25,7 @@ extern "C" void entry_emscripten_yield()
 		BX_UNUSED(__result__);                                                                            \
 	BX_MACRO_BLOCK_END
 
-#define EMSCRIPTEN_CHECK(_call) _EMSCRIPTEN_CHECK(BX_ASSERT, _call)
+#define EMSCRIPTEN_CHECK(_call) _EMSCRIPTEN_CHECK(/*BX_ASSERT*/ assert, _call)
 
 namespace entry
 {

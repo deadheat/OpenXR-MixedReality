@@ -138,6 +138,7 @@
     <ClCompile Include="Scene_HandTracking.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\SampleSceneWin32\packages.config" />
     <None Include="TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>

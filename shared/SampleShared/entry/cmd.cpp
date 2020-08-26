@@ -2,7 +2,7 @@
  * Copyright 2010-2020 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
-
+#include "pch.h"
 #include <bx/allocator.h>
 #include <bx/commandline.h>
 #include <bx/hash.h>
@@ -30,7 +30,8 @@ struct CmdContext
 	void add(const char* _name, ConsoleFn _fn, void* _userData)
 	{
 		uint32_t cmd = bx::hash<bx::HashMurmur2A>(_name, (uint32_t)bx::strLen(_name) );
-		BX_ASSERT(m_lookup.end() == m_lookup.find(cmd), "Command \"%s\" already exist.", _name);
+		//BX_ASSERT(m_lookup.end() == m_lookup.find(cmd), "Command \"%s\" already exist.", _name);
+        assert(m_lookup.end() == m_lookup.find(cmd));
 		Func fn = { _fn, _userData };
 		m_lookup.insert(stl::make_pair(cmd, fn) );
 	}

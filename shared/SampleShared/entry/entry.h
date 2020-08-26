@@ -10,6 +10,9 @@
 #include <bx/bx.h>
 #include <bx/filepath.h>
 #include <bx/string.h>
+#include <bx/spscqueue.h>
+
+
 
 namespace bx { struct FileReaderI; struct FileWriterI; struct AllocatorI; }
 
@@ -43,49 +46,6 @@ namespace entry
 	struct GamepadHandle { uint16_t idx; };
 	inline bool isValid(GamepadHandle _handle) { return UINT16_MAX != _handle.idx; }
 
-	struct MouseButton
-	{
-		enum Enum
-		{
-			None,
-			Left,
-			Middle,
-			Right,
-
-			Count
-		};
-	};
-
-	struct GamepadAxis
-	{
-		enum Enum
-		{
-			LeftX,
-			LeftY,
-			LeftZ,
-			RightX,
-			RightY,
-			RightZ,
-
-			Count
-		};
-	};
-
-	struct Modifier
-	{
-		enum Enum
-		{
-			None       = 0,
-			LeftAlt    = 0x01,
-			RightAlt   = 0x02,
-			LeftCtrl   = 0x04,
-			RightCtrl  = 0x08,
-			LeftShift  = 0x10,
-			RightShift = 0x20,
-			LeftMeta   = 0x40,
-			RightMeta  = 0x80,
-		};
-	};
 
 	struct Key
 	{
@@ -198,133 +158,11 @@ namespace entry
 		};
 	};
 
-	struct Suspend
-	{
-		enum Enum
-		{
-			WillSuspend,
-			DidSuspend,
-			WillResume,
-			DidResume,
-
-			Count
-		};
-	};
-
-	const char* getName(Key::Enum _key);
-
-	struct MouseState
-	{
-		MouseState()
-			: m_mx(0)
-			, m_my(0)
-			, m_mz(0)
-		{
-			for (uint32_t ii = 0; ii < entry::MouseButton::Count; ++ii)
-			{
-				m_buttons[ii] = entry::MouseButton::None;
-			}
-		}
-
-		int32_t m_mx;
-		int32_t m_my;
-		int32_t m_mz;
-		uint8_t m_buttons[entry::MouseButton::Count];
-	};
-
-	struct GamepadState
-	{
-		GamepadState()
-		{
-			bx::memSet(m_axis, 0, sizeof(m_axis) );
-		}
-
-		int32_t m_axis[entry::GamepadAxis::Count];
-	};
-
-	bool processEvents(uint32_t& _width, uint32_t& _height, uint32_t& _debug, uint32_t& _reset, MouseState* _mouse = NULL);
-
 	bx::FileReaderI* getFileReader();
 	bx::FileWriterI* getFileWriter();
 	bx::AllocatorI*  getAllocator();
 
-	WindowHandle createWindow(int32_t _x, int32_t _y, uint32_t _width, uint32_t _height, uint32_t _flags = ENTRY_WINDOW_FLAG_NONE, const char* _title = "");
-	void destroyWindow(WindowHandle _handle);
-	void setWindowPos(WindowHandle _handle, int32_t _x, int32_t _y);
-	void setWindowSize(WindowHandle _handle, uint32_t _width, uint32_t _height);
-	void setWindowTitle(WindowHandle _handle, const char* _title);
-	void setWindowFlags(WindowHandle _handle, uint32_t _flags, bool _enabled);
-	void toggleFullscreen(WindowHandle _handle);
-	void setMouseLock(WindowHandle _handle, bool _lock);
-	void setCurrentDir(const char* _dir);
-
-	struct WindowState
-	{
-		WindowState()
-			: m_width(0)
-			, m_height(0)
-			, m_nwh(NULL)
-		{
-			m_handle.idx = UINT16_MAX;
-		}
-
-		WindowHandle m_handle;
-		uint32_t     m_width;
-		uint32_t     m_height;
-		MouseState   m_mouse;
-		void*        m_nwh;
-		bx::FilePath m_dropFile;
-	};
-
-	bool processWindowEvents(WindowState& _state, uint32_t& _debug, uint32_t& _reset);
-
-	class BX_NO_VTABLE AppI
-	{
-	public:
-		///
-		AppI(const char* _name, const char* _description, const char* _url = "https://bkaradzic.github.io/bgfx/index.html");
-
-		///
-		virtual ~AppI() = 0;
-
-		///
-		virtual void init(int32_t _argc, const char* const* _argv, uint32_t _width, uint32_t _height) = 0;
-
-		///
-		virtual int  shutdown() = 0;
-
-		///
-		virtual bool update() = 0;
-
-		///
-		const char* getName() const;
-
-		///
-		const char* getDescription() const;
-
-		///
-		const char* getUrl() const;
-
-		///
-		AppI* getNext();
-
-		AppI* m_next;
-
-	private:
-		const char* m_name;
-		const char* m_description;
-		const char* m_url;
-	};
-
-	///
-	AppI* getFirstApp();
-
-	///
-	uint32_t getNumApps();
-
-	///
-	int runApp(AppI* _app, int _argc, const char* const* _argv);
-
+	
 } // namespace entry
 
 #endif // ENTRY_H_HEADER_GUARD
