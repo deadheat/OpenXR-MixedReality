@@ -19,27 +19,7 @@
 
 using namespace DirectX;
 
-namespace {
-    struct UniformHandles {
-        bgfx::UniformHandle ViewProjection;
-        bgfx::UniformHandle EyePosition;
-        bgfx::UniformHandle HighlightPositionLightDirectionLightColor;
-        bgfx::UniformHandle NumSpecularMipLevelsAnimationTime;
-        bgfx::UniformHandle ModelToWorld;
-    };
 
-    struct SceneUniforms {
-        DirectX::XMFLOAT4X4 u_viewProjection;
-        DirectX::XMFLOAT4 u_eyePosition;
-        float u_highlightPositionLightDirectionLightColor[3][3];
-        float u_numSpecularMipLevelsAnimationTime[4];
-    };
-
-    struct ModelConstantUniform {
-        // alignas(16)
-        DirectX::XMFLOAT4X4 ModelToWorld;
-    };
-} // namespace
 // I removed opengl opengles abd metal
 const bgfx::EmbeddedShader s_embeddedShaders[] = {BGFX_EMBEDDED_SHADER(fs_PbrPixelShader),
                                                   BGFX_EMBEDDED_SHADER(fs_HighlightPixelShader),
@@ -97,12 +77,14 @@ namespace Pbr {
 
             // ID3D11Device* device = (ID3D11Device*)bgfx::getInternalData()->context;
             // Samplers for environment map and BRDF.
-            Resources.EnvironmentMapSampler.reset(Texture::CreateSampler("EnvironmentMapSampler"));
 
-            Resources.MetallicRoughnessSampler.reset(Texture::CreateSampler("u_metallicRoughnessTexture"));
-            Resources.NormalSampler.reset(Texture::CreateSampler("u_normalTexture"));
-            Resources.OcclusionSampler.reset(Texture::CreateSampler("u_occlusionTexture"));
-            Resources.EmissiveSampler.reset(Texture::CreateSampler("u_emissiveTexture"));
+            // Seyi NOTE: Maybe this was never a good place for this?
+            //Resources.EnvironmentMapSampler.reset(Texture::CreateSampler("EnvironmentMapSampler"));
+
+            //Resources.MetallicRoughnessSampler.reset(Texture::CreateSampler("u_metallicRoughnessTexture"));
+            //Resources.NormalSampler.reset(Texture::CreateSampler("u_normalTexture"));
+            //Resources.OcclusionSampler.reset(Texture::CreateSampler("u_occlusionTexture"));
+            //Resources.EmissiveSampler.reset(Texture::CreateSampler("u_emissiveTexture"));
             Resources.BRDFSampler.reset(Texture::CreateSampler("u_BRDFTexture"));
             Resources.SpecularSampler.reset(Texture::CreateSampler("u_specularTexture"));
             Resources.DiffuseSampler.reset(Texture::CreateSampler("u_diffuseTexture"));
@@ -159,36 +141,7 @@ namespace Pbr {
             }
         }
 
-        struct DeviceResources {
-            unique_bgfx_handle<bgfx::UniformHandle> EnvironmentMapSampler;
-
-            unique_bgfx_handle<bgfx::UniformHandle> MetallicRoughnessSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> NormalSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> OcclusionSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> EmissiveSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> BRDFSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> SpecularSampler;
-            unique_bgfx_handle<bgfx::UniformHandle> DiffuseSampler;
-            unique_bgfx_handle<bgfx::ProgramHandle> ShaderProgram;
-            // winrt::com_ptr<bgfx::VertexLayout> InputLayout;
-            unique_bgfx_handle<bgfx::ShaderHandle> PbrVertexShader;
-            unique_bgfx_handle<bgfx::ShaderHandle> PbrPixelShader;
-            unique_bgfx_handle<bgfx::ShaderHandle> HighlightVertexShader;
-            unique_bgfx_handle<bgfx::ShaderHandle> HighlightPixelShader;
-            // winrt::com_ptr<ID3D11Buffer> SceneConstantBuffer;
-            SceneUniforms SceneUniforms;
-            UniformHandles AllUniformHandles;
-            ModelConstantUniform ModelConstantUniform;
-            unique_bgfx_handle<bgfx::TextureHandle> BrdfLut;
-            unique_bgfx_handle<bgfx::TextureHandle> SpecularEnvironmentMap;
-            unique_bgfx_handle<bgfx::TextureHandle> DiffuseEnvironmentMap;
-            uint64_t AlphaBlendState;
-            uint64_t DefaultBlendState;
-            uint64_t RasterizerStates[2][2][2]; // Three dimensions for [DoubleSide][Wireframe][FrontCounterClockWise]
-            uint64_t StateFlags;
-            uint64_t DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
-            mutable std::map<uint32_t, shared_bgfx_handle<bgfx::TextureHandle>> SolidColorTextureCache;
-        };
+        
 
         mutable DeviceResources Resources;
         SceneUniforms SceneUniformsInstance;
@@ -266,7 +219,8 @@ namespace Pbr {
 
     void XM_CALLCONV Resources::SetModelToWorld(DirectX::FXMMATRIX modelToWorld) const {
         // XMStoreFloat4x4(&m_impl->ModelBuffer.ModelToWorld, XMMatrixTranspose(modelToWorld));
-        bgfx::setUniform(m_impl->Resources.AllUniformHandles.ModelToWorld, &modelToWorld, 1);
+        //Already do this?
+        //bgfx::setUniform(m_impl->Resources.AllUniformHandles.ModelToWorld, &modelToWorld, 1);
         // context->UpdateSubresource(m_impl->Resources.ModelConstantBuffer.get(), 0, nullptr, &m_impl->ModelBuffer, 0, 0);
     }
     // DirectX::XMFLOAT4X4 u_viewProjection;
@@ -315,7 +269,7 @@ namespace Pbr {
         }
 
         shared_bgfx_handle<bgfx::TextureHandle> texture(
-            Pbr::Texture::CreateTexture(rgba.data(), 1, 1, 1, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM)));
+            Pbr::Texture::CreateTexture(rgba.data(), 4, 1, 1, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM)));
         std::lock_guard guard(m_impl->m_cacheMutex);
         // If the key already exists then the existing texture will be returned.
         return m_impl->Resources.SolidColorTextureCache.emplace(colorKey, texture).first->second;
@@ -407,6 +361,10 @@ namespace Pbr {
 
     void Resources::SetDepthFuncReversed(bool reverseZ) {
         m_impl->ReverseZ = reverseZ;
+    }
+
+    DeviceResources* Resources::getResources() {
+        return &m_impl->Resources;
     }
 
     void Resources::SetState(bool blended, bool doubleSided, bool wireframe, bool disableDepthWrite) const {

@@ -13,7 +13,7 @@
 
 #include <bgfx/platform.h>
 #include <bgfx/embedded_shader.h>
-
+#include "SampleShared/bgfx_utils.h"
 using namespace DirectX;
 
 #define TRIANGLE_VERTEX_COUNT 3 // #define so it can be used in lambdas without capture
@@ -270,20 +270,37 @@ namespace Pbr {
 
             int w, h, c;
             // If c == 3, a component will be padded with 1.0f
-            stbi_unique_ptr rgbaData(stbi_load_from_memory(fileData, fileSize, &w, &h, &c, DesiredComponentCount), freeImageData);
-            if (!rgbaData) {
-                throw std::exception("Failed to load image file data.");
+            //bimg::ImageContainer* dmap = imageLoad(m_dmap.pathToFile.getCPtr(), bgfx::TextureFormat::R16);
+            //auto file = std::make_pair(fileData, fileSize);
+
+
+            stbi_unique_ptr rgbadata(stbi_load_from_memory(fileData, fileSize, &w, &h, &c, DesiredComponentCount), freeImageData);
+            if (!rgbadata) {
+                throw std::exception("failed to load image file data.");
             }
 
-            return CreateTexture(
-                rgbaData.get(), w * h * DesiredComponentCount, w, h, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
+           /* bgfx::TextureInfo ti;
+            bimg::imageGetSize((bimg::TextureInfo*)&ti,
+                               w,
+                               h,
+                               1,
+                               false,
+                               true,
+                               1,
+                               bimg::TextureFormat::Enum(sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM)));*/
+
+            return CreateTexture(rgbadata.get(),
+                                 w * h * DesiredComponentCount,
+                                 w,
+                                 h,
+                                 sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
         }
 
         bgfx::TextureHandle CreateFlatCubeTexture(RGBAColor color, bgfx::TextureFormat::Enum format) {
             // Each side is a 1x1 pixel (RGBA) image.
             const std::array<uint8_t, 4> rgbaColor = LoadRGBAUI4(color);
             return bgfx::createTextureCube(1 /*_size*/,
-                                           true /*bool _hasMips*/,
+                                           false /*bool _hasMips*/,
                                            6 /*_numLayers*/,
                                            format,
                                            /*uint64_t _flags = */ BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE | BGFX_CAPS_TEXTURE_CUBE_ARRAY,
@@ -292,13 +309,14 @@ namespace Pbr {
 
         bgfx::TextureHandle
         CreateTexture(_In_reads_bytes_(size) const uint8_t* rgba, uint32_t size, int width, int height, bgfx::TextureFormat::Enum format) {
+            
             return bgfx::createTexture2D(width,
                                          height,
-                                         true /*_hasMips*/,
+                                         false /*_hasMips*/,
                                          1 /*_numLayers*/,
                                          format /*TextureFormat::Enum_format*/,
                                          /*uint64_t _flags = */ BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE,
-                                         bgfx::makeRef(rgba, sizeof(rgba)));
+                                         bgfx::makeRef(rgba, size));
         }
 
         // from what I can tell this is handled internally in bgfx, but I could be wrong

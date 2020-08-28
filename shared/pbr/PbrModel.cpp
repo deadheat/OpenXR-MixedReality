@@ -39,6 +39,10 @@ namespace Pbr
         //Pbr::ShaderSlots::Transforms
         //context->VSSetShaderResources(Pbr::ShaderSlots::Transforms, _countof(vsShaderResources), vsShaderResources);
 
+        //const DirectX::XMMATRIX spaceToView = xr::math::LoadInvertedXrPose(viewProjections[k].Pose);
+        //const DirectX::XMMATRIX projectionMatrix = ComposeProjectionMatrix(viewProjections[k].Fov, viewProjections[k].NearFar);
+
+
         for (const Pbr::Primitive& primitive : m_primitives)
         {
             if (primitive.GetMaterial()->Hidden) continue;

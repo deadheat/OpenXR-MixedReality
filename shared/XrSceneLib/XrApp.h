@@ -44,7 +44,7 @@ struct XrAppConfiguration {
     const xr::NameVersion AppInfo;
     std::vector<std::string> RequestedExtensions;
     bool SingleThreadedD3D11Device{false};
-    bool RenderSynchronously{false};
+    bool RenderSynchronously{true}; // change when you want multi threaded
     std::optional<XrHolographicWindowAttachmentMSFT> HolographicWindowAttachment{std::nullopt};
 };
 

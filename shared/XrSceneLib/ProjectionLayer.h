@@ -20,6 +20,7 @@
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrMath.h>
 #include <SampleShared/BgfxUtility.h>
+#include <SampleShared/DxUtility.h>
 #include "SceneContext.h"
 #include "FrameTime.h"
 
@@ -77,6 +78,7 @@ public:
                 XrViewConfigurationType viewConfig);
 
 private:
+    XrEnvironmentBlendMode m_environmentBlendMode{};
     struct ViewConfigComponent {
         ProjectionLayerConfig CurrentConfig;
         ProjectionLayerConfig PendingConfig;
@@ -92,6 +94,12 @@ private:
         sample::bg::SwapchainD3D11 ColorSwapchain;
         sample::bg::SwapchainD3D11 DepthSwapchain;
     };
+    struct CachedFrameBuffer {
+        std::vector<unique_bgfx_handle<bgfx::FrameBufferHandle>> FrameBuffers;
+    };
+
+    std::map<std::tuple<void*, void*>, CachedFrameBuffer> m_cachedFrameBuffers;
+
     std::unordered_map<XrViewConfigurationType, ViewConfigComponent> m_viewConfigComponents;
     XrViewConfigurationType m_defaultViewConfigurationType;
 

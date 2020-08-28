@@ -14,6 +14,57 @@
 #include "SampleShared/BgfxUtility.h"
 
 namespace Pbr {
+    namespace {
+        struct UniformHandles {
+            bgfx::UniformHandle ViewProjection;
+            bgfx::UniformHandle EyePosition;
+            bgfx::UniformHandle HighlightPositionLightDirectionLightColor;
+            bgfx::UniformHandle NumSpecularMipLevelsAnimationTime;
+            bgfx::UniformHandle ModelToWorld;
+        };
+
+        struct SceneUniforms {
+            DirectX::XMFLOAT4X4 u_viewProjection;
+            DirectX::XMFLOAT4 u_eyePosition;
+            float u_highlightPositionLightDirectionLightColor[3][3];
+            float u_numSpecularMipLevelsAnimationTime[4];
+        };
+
+        struct ModelConstantUniform {
+            // alignas(16)
+            DirectX::XMFLOAT4X4 ModelToWorld;
+        };
+    } // namespace
+    struct DeviceResources {
+        //unique_bgfx_handle<bgfx::UniformHandle> EnvironmentMapSampler;
+
+        //unique_bgfx_handle<bgfx::UniformHandle> MetallicRoughnessSampler;
+        //unique_bgfx_handle<bgfx::UniformHandle> NormalSampler;
+        //unique_bgfx_handle<bgfx::UniformHandle> OcclusionSampler;
+        //unique_bgfx_handle<bgfx::UniformHandle> EmissiveSampler;
+        unique_bgfx_handle<bgfx::UniformHandle> BRDFSampler;
+        unique_bgfx_handle<bgfx::UniformHandle> SpecularSampler;
+        unique_bgfx_handle<bgfx::UniformHandle> DiffuseSampler;
+        unique_bgfx_handle<bgfx::ProgramHandle> ShaderProgram;
+        // winrt::com_ptr<bgfx::VertexLayout> InputLayout;
+        unique_bgfx_handle<bgfx::ShaderHandle> PbrVertexShader;
+        unique_bgfx_handle<bgfx::ShaderHandle> PbrPixelShader;
+        unique_bgfx_handle<bgfx::ShaderHandle> HighlightVertexShader;
+        unique_bgfx_handle<bgfx::ShaderHandle> HighlightPixelShader;
+        // winrt::com_ptr<ID3D11Buffer> SceneConstantBuffer;
+        SceneUniforms SceneUniforms;
+        UniformHandles AllUniformHandles;
+        ModelConstantUniform ModelConstantUniform;
+        unique_bgfx_handle<bgfx::TextureHandle> BrdfLut;
+        unique_bgfx_handle<bgfx::TextureHandle> SpecularEnvironmentMap;
+        unique_bgfx_handle<bgfx::TextureHandle> DiffuseEnvironmentMap;
+        uint64_t AlphaBlendState;
+        uint64_t DefaultBlendState;
+        uint64_t RasterizerStates[2][2][2]; // Three dimensions for [DoubleSide][Wireframe][FrontCounterClockWise]
+        uint64_t StateFlags;
+        uint64_t DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
+        mutable std::map<uint32_t, shared_bgfx_handle<bgfx::TextureHandle>> SolidColorTextureCache;
+    };
     namespace ShaderSlots {
         enum VSResourceViews {
             Transforms = 0,
@@ -119,6 +170,7 @@ namespace Pbr {
         FrontFaceWindingOrder GetFrontFaceWindingOrder() const;
 
         void SetDepthFuncReversed(bool reverseZ);
+        DeviceResources* getResources();
 
     private:
         void SetState(bool blended, bool doubleSided, bool wireframe, bool disableDepthWrite) const;

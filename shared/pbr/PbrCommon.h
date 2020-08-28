@@ -99,6 +99,7 @@ namespace Pbr {
                                                                int width,
                                                                int height,
                                                                bgfx::TextureFormat::Enum format);
+
         bgfx::UniformHandle CreateSampler(const char* _uniqueName);
     } // namespace Texture
 } // namespace Pbr

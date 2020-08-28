@@ -13,9 +13,9 @@ using namespace DirectX;
 namespace Pbr {
     Material::Material(Pbr::Resources const& pbrResources) {
         //const CD3D11_BUFFER_DESC constantBufferDesc(sizeof(ConstantBufferData), D3D11_BIND_CONSTANT_BUFFER);
-        bgfx::createUniform("u_baseColorFactor", bgfx::UniformType::Vec4);
-        bgfx::createUniform("u_metallicRoughnessNormalOcclusion", bgfx::UniformType::Vec4);
-        bgfx::createUniform("u_emissiveAlphaCutoff", bgfx::UniformType::Vec4);
+        m_baseColorFactor = bgfx::createUniform("u_baseColorFactor", bgfx::UniformType::Vec4);
+        m_metallicRoughnessNormalOcclusion = bgfx::createUniform("u_metallicRoughnessNormalOcclusion", bgfx::UniformType::Vec4);
+        m_emissiveAlphaCutoff =  bgfx::createUniform("u_emissiveAlphaCutoff", bgfx::UniformType::Vec4);
 
         //Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateBuffer(&constantBufferDesc, nullptr, m_constantBuffer.put()));
         //m_constantBuffer = bgfx::createUniform("ConstantBufferData", bgfx::UniformType::Count, sizeof(ConstantBufferData))
@@ -61,14 +61,25 @@ namespace Pbr {
 
 
         // Seyi NOTE: I dont think this is putting the right samplers in place, should modify later
-        shared_bgfx_handle<bgfx::UniformHandle> defaultSampler(Pbr::Texture::CreateSampler("defaultSampler"));
-        material->SetTexture(ShaderSlots::BaseColor, pbrResources.CreateSolidColorTexture(RGBA::White), defaultSampler);
-        material->SetTexture(ShaderSlots::MetallicRoughness, pbrResources.CreateSolidColorTexture(RGBA::White), defaultSampler);
+        shared_bgfx_handle<bgfx::UniformHandle> EnvironmentMapSampler(Pbr::Texture::CreateSampler("EnvironmentMapSampler"));
+        shared_bgfx_handle<bgfx::UniformHandle> MetallicRoughnessSampler(Pbr::Texture::CreateSampler("MetallicRoughnessSampler"));
+        shared_bgfx_handle<bgfx::UniformHandle> NormalSampler      (Pbr::Texture::CreateSampler("NormalSampler"));
+        shared_bgfx_handle<bgfx::UniformHandle> OcclusionSampler   (Pbr::Texture::CreateSampler("OcclusionSampler"));
+        shared_bgfx_handle<bgfx::UniformHandle> EmissiveSampler    (Pbr::Texture::CreateSampler("EmissiveSampler"));
+        //shared_bgfx_handle<bgfx::UniformHandle> BRDFSampler        (Pbr::Texture::CreateSampler("BRDFSampler"));
+        //shared_bgfx_handle<bgfx::UniformHandle> SpecularSampler    (Pbr::Texture::CreateSampler("SpecularSampler"));
+        //shared_bgfx_handle<bgfx::UniformHandle> DiffuseSampler     (Pbr::Texture::CreateSampler("DiffuseSampler"));
+        shared_bgfx_handle<bgfx::UniformHandle> DefaultSampler(Pbr::Texture::CreateSampler("defaultSampler"));
+
+
+
+        material->SetTexture(ShaderSlots::BaseColor, pbrResources.CreateSolidColorTexture(RGBA::White),DefaultSampler );
+        material->SetTexture(ShaderSlots::MetallicRoughness, pbrResources.CreateSolidColorTexture(RGBA::White), MetallicRoughnessSampler);
         // No occlusion.
-        material->SetTexture(ShaderSlots::Occlusion, pbrResources.CreateSolidColorTexture(RGBA::White), defaultSampler);
+        material->SetTexture(ShaderSlots::Occlusion, pbrResources.CreateSolidColorTexture(RGBA::White), OcclusionSampler);
         // Flat normal.
-        material->SetTexture(ShaderSlots::Normal,pbrResources.CreateSolidColorTexture(RGBA::FlatNormal), defaultSampler);
-        material->SetTexture(ShaderSlots::Emissive, pbrResources.CreateSolidColorTexture(RGBA::White), defaultSampler);
+        material->SetTexture(ShaderSlots::Normal, pbrResources.CreateSolidColorTexture(RGBA::FlatNormal), NormalSampler);
+        material->SetTexture(ShaderSlots::Emissive, pbrResources.CreateSolidColorTexture(RGBA::White), EmissiveSampler);
 
         return material;
     }

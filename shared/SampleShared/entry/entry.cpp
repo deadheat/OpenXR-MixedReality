@@ -184,6 +184,35 @@ BX_PRAGMA_DIAGNOSTIC_POP();
 	};
 	BX_STATIC_ASSERT(Key::Count == BX_COUNTOF(s_keyName) );
 
+	#if BX_PLATFORM_EMSCRIPTEN
+        static AppI* s_app;
+        static void updateApp() {
+            s_app->update();
+        }
+#endif // BX_PLATFORM_EMSCRIPTEN
+
+        //static AppI* s_currentApp = NULL;
+        //static AppI* s_apps = NULL;
+        //static uint32_t s_numApps = 0;
+
+        //static char s_restartArgs[1024] = {'\0'};
+
+        //static AppI* getCurrentApp(AppI* _set = NULL) {
+        //    if (NULL != _set) {
+        //        s_currentApp = _set;
+        //    } else if (NULL == s_currentApp) {
+        //        s_currentApp = getFirstApp();
+        //    }
+
+        //    return s_currentApp;
+        //}
+	int main(int _argc, const char* const* _argv) {
+        // DBG(BX_COMPILER_NAME " / " BX_CPU_NAME " / " BX_ARCH_NAME " / " BX_PLATFORM_NAME);
+
+        s_fileReader = BX_NEW(g_allocator, FileReader);
+        s_fileWriter = BX_NEW(g_allocator, FileWriter);
+        return 0;
+    }
 
 	bx::FileReaderI* getFileReader() {
             return s_fileReader;

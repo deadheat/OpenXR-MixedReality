@@ -31,7 +31,7 @@
 #include <wil/resource.h>
 #include <bgfx/bgfx.h>
 #include <bgfx/platform.h>
-
+#include <bx/file.h>
 #include <bx/uint32_t.h>
 #include "bgfx_utils.h"
 
@@ -70,7 +70,17 @@ template <typename bgfx_handle_t,
 using shared_bgfx_handle = wil::shared_any<unique_bgfx_handle<bgfx_handle_t, close_fn_t, close_fn>>;
 
 namespace sample::bg {
+    static bx::FileReaderI* s_fileReader = NULL;
+    static bx::FileWriterI* s_fileWriter = NULL;
 
+    void InitializeBxResources();
+    void FreeBxResources();
+
+    bx::FileReaderI* getFileReader();
+    bx::FileWriterI* getFileWriter();
+    bx::AllocatorI* getAllocator();
+
+    bool IsSRGBFormat(DXGI_FORMAT format);
     bgfx::TextureFormat::Enum DxgiFormatToBgfxFormat(DXGI_FORMAT format);
     winrt::com_ptr<IDXGIAdapter1> GetAdapter(LUID adapterId);
 

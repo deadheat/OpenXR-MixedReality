@@ -21,18 +21,84 @@
 
 #include <DirectXMath.h>
 
-
-
-
-
-
-
 namespace sample::bg {
+    bx::AllocatorI* getDefaultAllocator() {
+        BX_PRAGMA_DIAGNOSTIC_PUSH();
+        BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4459); // warning C4459: declaration of 's_allocator' hides global declaration
+        BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG_GCC("-Wshadow");
+        static bx::DefaultAllocator s_allocator;
+        return &s_allocator;
+        BX_PRAGMA_DIAGNOSTIC_POP();
+    }
+    extern bx::AllocatorI* getDefaultAllocator();
+    bx::AllocatorI* g_allocator = getDefaultAllocator();
+    typedef bx::StringT<&g_allocator> String;
 
+    static String s_currentDir;
+
+    class FileReader : public bx::FileReader {
+        typedef bx::FileReader super;
+
+    public:
+        virtual bool open(const bx::FilePath& _filePath, bx::Error* _err) override {
+            String filePath(s_currentDir);
+            filePath.append(_filePath);
+            return super::open(filePath.getPtr(), _err);
+        }
+    };
+    class FileWriter : public bx::FileWriter {
+        typedef bx::FileWriter super;
+
+    public:
+        virtual bool open(const bx::FilePath& _filePath, bool _append, bx::Error* _err) override {
+            String filePath(s_currentDir);
+            filePath.append(_filePath);
+            return super::open(filePath.getPtr(), _append, _err);
+        }
+    };
+
+    void InitializeBxResources() {
+        s_fileReader = BX_NEW(g_allocator, FileReader);
+        s_fileWriter = BX_NEW(g_allocator, FileWriter);
+    }
+    void FreeBxResources(){
+        BX_DELETE(g_allocator, s_fileReader);
+        s_fileReader = NULL;
+
+        BX_DELETE(g_allocator, s_fileWriter);
+        s_fileWriter = NULL;
+    }
     enum class RendererType {
         D3D11,
         D3D12,
     };
+    bx::FileReaderI* getFileReader() {
+        return s_fileReader;
+    }
+
+    bx::FileWriterI* getFileWriter() {
+        return s_fileWriter;
+    }
+
+    bx::AllocatorI* getAllocator() {
+        if (NULL == g_allocator) {
+            g_allocator = getDefaultAllocator();
+        }
+
+        return g_allocator;
+    }
+
+    bool IsSRGBFormat(DXGI_FORMAT format) {
+        switch (format) {
+        case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+        case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+            return true;
+
+        default:
+            return false;
+        }
+    }
+
     bgfx::TextureFormat::Enum DxgiFormatToBgfxFormat(DXGI_FORMAT format) {
         switch (format) {
             // Color Formats

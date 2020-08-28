@@ -204,6 +204,7 @@ namespace {
         if (!xr::Contains(system.SupportedPrimaryViewConfigurationTypes, PrimaryViewConfigurationType)) {
             throw std::logic_error("The system doesn't support required primary view configuration.");
         }
+        sample::bg::InitializeBxResources();
         auto [d3d11Binding, device, deviceContext] = sample::bg::BgfxCreateD3D11Binding(
             instance.Handle, system.Id, extensions, m_appConfiguration.SingleThreadedD3D11Device, SupportedFeatureLevels);
 
@@ -456,6 +457,7 @@ namespace {
 
     void ImplementXrApp::EndSession() {
         StopRenderThreadIfRunning();
+        sample::bg::FreeBxResources();
         m_sessionRunning = false;
         CHECK_XRCMD(xrEndSession(SceneContext().Session.Handle));
     }
