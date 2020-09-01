@@ -5,9 +5,13 @@
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Scene_Orbit.cpp" />
     <ClCompile Include="Scene_HandTracking.cpp" />
+    <ClCompile Include="..\..\shared\SampleShared\meshoptimizer\src\indexcodec.cpp" />
+    <ClCompile Include="..\..\shared\SampleShared\meshoptimizer\src\vertexcodec.cpp" />
+    <ClCompile Include="..\..\shared\SampleShared\entry\entry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="..\..\shared\SampleShared\entry\entry.h" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

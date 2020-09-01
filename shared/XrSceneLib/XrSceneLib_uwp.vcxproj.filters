@@ -33,6 +33,9 @@
     <ClCompile Include="ObjectMotion.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
+    <ClCompile Include="..\SampleShared\meshoptimizer\src\indexcodec.cpp" />
+    <ClCompile Include="..\SampleShared\meshoptimizer\src\vertexcodec.cpp" />
+    <ClCompile Include="..\SampleShared\entry\entry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -73,6 +76,7 @@
     <ClInclude Include="ObjectMotion.h">
       <Filter>Objects</Filter>
     </ClInclude>
+    <ClInclude Include="..\SampleShared\entry\entry.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Objects">
@@ -90,4 +94,3 @@
     <None Include="$(OpenXRLoaderBinaryRoot)\bin\openxr_loader.dll" />
   </ItemGroup>
 </Project>
-

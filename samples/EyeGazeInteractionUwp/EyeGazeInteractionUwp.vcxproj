@@ -129,9 +129,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\shared\SampleShared\entry\entry.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\shared\SampleShared\entry\entry.cpp" />
+    <ClCompile Include="..\..\shared\SampleShared\meshoptimizer\src\indexcodec.cpp" />
+    <ClCompile Include="..\..\shared\SampleShared\meshoptimizer\src\vertexcodec.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Scene_EyeGazeInteraction.cpp" />
     <ClCompile Include="pch.cpp">

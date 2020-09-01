@@ -4,13 +4,18 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Scene_EyeGazeInteraction.cpp" />
+    <ClCompile Include="..\..\shared\SampleShared\meshoptimizer\src\indexcodec.cpp" />
+    <ClCompile Include="..\..\shared\SampleShared\meshoptimizer\src\vertexcodec.cpp" />
+    <ClCompile Include="..\..\shared\SampleShared\entry\entry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="..\..\shared\SampleShared\entry\entry.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="TemporaryKey.pfx" />
+    <None Include="$(OpenXRLoaderBinaryRoot)\bin\openxr_loader.dll" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DeploymentContent">
