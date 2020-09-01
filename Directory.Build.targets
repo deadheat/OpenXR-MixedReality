@@ -2,11 +2,11 @@
 
     <ItemDefinitionGroup>
         <ClCompile>
-            <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)\bgfx\include\compat\msvc;$(MSBuildThisFileDirectory)\bgfx\include;$(OpenXrSdkPath)\include;$(SharedPath);$(SharedPath)\ext;$(SharedPath)\ext\rapidjson;$(IntDir);%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
+            <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)\shared\ext\bgfx\include\compat\msvc;$(MSBuildThisFileDirectory)\shared\ext\bgfx\include;$(MSBuildThisFileDirectory)\shared\ext\bx\include;$(MSBuildThisFileDirectory)\shared\ext\bimg\include;$(MSBuildThisFileDirectory)\shared\ext\compat\msvc;$(OpenXrSdkPath)\include;$(SharedPath);$(SharedPath)\ext;$(SharedPath)\ext\rapidjson;$(IntDir);%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
         </ClCompile>
         <Link>
-            <AdditionalDependencies>windowsapp.lib;bimg_decode$(Configuration).lib;bimg$(Configuration).lib;bgfx$(Configuration).lib;bx$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
-            <AdditionalLibraryDirectories>$(MSBuildThisFileDirectory)\bgfx\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>dxguid.lib;Gdi32.lib;windowsapp.lib;bimg_decode$(Configuration).lib;bimg$(Configuration).lib;bgfx$(Configuration).lib;bx$(Configuration).lib;%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(MSBuildThisFileDirectory)\shared\ext\bgfx\.build\win64_vs2019\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
         </Link>
     </ItemDefinitionGroup>
 

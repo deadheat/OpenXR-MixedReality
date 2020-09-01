@@ -14,7 +14,7 @@
 //
 //*********************************************************
 #pragma once
-
+#include <initguid.h>
 #include <sdkddkver.h>
 
 #define NOMINMAX

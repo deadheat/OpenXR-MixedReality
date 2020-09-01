@@ -17,7 +17,7 @@ namespace stl = tinystl;
 #include <bx/readerwriter.h>
 #include <bx/string.h>
 #include "BgfxUtility.h"
-#include "entry/entry.h"
+//#include "entry/entry.h"
 #include "meshoptimizer/src/meshoptimizer.h"
 
 #include "bgfx_utils.h"
@@ -27,6 +27,8 @@ namespace stl = tinystl;
 #include <stdlib.h>
 //#include <assert.h>
 const size_t BGFX_UTILS_BUFFER_SIZE = 1028;
+
+#define DBG
 
 void* load(bx::FileReaderI* _reader, bx::AllocatorI* _allocator, const char* _filePath, uint32_t* _size)
 {
@@ -266,13 +268,13 @@ bgfx::TextureHandle loadTexture(const wchar_t* _name, uint64_t _flags, uint8_t _
     return loadTexture(sample::bg::getFileReader(), _name, _flags, _skip, _info, _orientation);
 }
 
-bimg::ImageContainer* imageLoad(const char* _filePath, bgfx::TextureFormat::Enum _dstFormat)
-{
-	uint32_t size = 0;
-	void* data = loadMem(entry::getFileReader(), entry::getAllocator(), _filePath, &size);
-
-	return bimg::imageParse(entry::getAllocator(), data, size, bimg::TextureFormat::Enum(_dstFormat) );
-}
+//bimg::ImageContainer* imageLoad(const char* _filePath, bgfx::TextureFormat::Enum _dstFormat)
+//{
+//	uint32_t size = 0;
+//	void* data = loadMem(entry::getFileReader(), entry::getAllocator(), _filePath, &size);
+//
+//	return bimg::imageParse(entry::getAllocator(), data, size, bimg::TextureFormat::Enum(_dstFormat) );
+//}
 
 void calcTangents(void* _vertices, uint16_t _numVertices, bgfx::VertexLayout _layout, const uint16_t* _indices, uint32_t _numIndices)
 {
@@ -458,7 +460,7 @@ void Mesh::load(bx::ReaderSeekerI* _reader, bool _ramcopy)
 				void* compressedVertices = BX_ALLOC(allocator, compressedSize);
 				bx::read(_reader, compressedVertices, compressedSize);
 
-				meshopt_decodeVertexBuffer(mem->data, group.m_numVertices, stride, (uint8_t*)compressedVertices, compressedSize);
+				//TODO:meshopt_decodeVertexBuffer(mem->data, group.m_numVertices, stride, (uint8_t*)compressedVertices, compressedSize);
 
 				BX_FREE(allocator, compressedVertices);
 
@@ -501,7 +503,7 @@ void Mesh::load(bx::ReaderSeekerI* _reader, bool _ramcopy)
 
 				bx::read(_reader, compressedIndices, compressedSize);
 
-				meshopt_decodeIndexBuffer(mem->data, group.m_numIndices, 2, (uint8_t*)compressedIndices, compressedSize);
+				//TODO:meshopt_decodeIndexBuffer(mem->data, group.m_numIndices, 2, (uint8_t*)compressedIndices, compressedSize);
 
 				BX_FREE(allocator, compressedIndices);
 
