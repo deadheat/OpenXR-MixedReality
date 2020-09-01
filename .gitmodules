@@ -4,3 +4,6 @@
 [submodule "shared/ext/bimg"]
 	path = shared/ext/bimg
 	url = https://github.com/bkaradzic/bimg.git
+[submodule "shared/ext/bgfx"]
+	path = shared/ext/bgfx
+	url = https://github.com/bkaradzic/bgfx.git
