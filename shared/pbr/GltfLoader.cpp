@@ -1,6 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright (C) Microsoft Corporation.  All Rights Reserved
 // Licensed under the MIT License. See License.txt in the project root for license information.
+#pragma once
+
 #include "pch.h"
 #define TINYGLTF_USE_RAPIDJSON
 #define TINYGLTF_USE_RAPIDJSON_CRTALLOCATOR

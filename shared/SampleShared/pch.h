@@ -36,12 +36,18 @@
 #include <vector>
 
 #include <d3d11_4.h>
+#include <d3d12.h>
 #include <DirectXMath.h>
 
 #define XR_USE_PLATFORM_WIN32
 #define XR_USE_GRAPHICS_API_D3D11
+//#define XR_USE_GRAPHICS_API_D3D12
+
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
-#include <XrUtility/XrError.h>
-#include <XrUtility/XrHandle.h>
+#include "../XrUtility/XrError.h"
+#include "../XrUtility/XrHandle.h"
+#include "../XrUtility/XrMath.h"
+#include "../XrUtility/XrString.h"
+#include "../XrUtility/XrExtensions.h"

@@ -13,6 +13,7 @@
 //    permissions and limitations under the License.
 //
 //*********************************************************
+#pragma once
 #include "pch.h"
 
 #include <XrUtility/XrEnumerate.h>

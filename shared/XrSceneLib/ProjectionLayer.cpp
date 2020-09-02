@@ -13,6 +13,7 @@
 //    permissions and limitations under the License.
 //
 //*********************************************************
+#pragma once
 #include "pch.h"
 
 #include <XrUtility/XrMath.h>
@@ -75,7 +76,7 @@ void ProjectionLayer::PrepareRendering(const SceneContext& sceneContext,
         shouldResetSwapchain = true;
     }
 
-    if (!shouldResetSwapchain && !viewConfigComponent.ColorSwapchain.Handle || !viewConfigComponent.DepthSwapchain.Handle) {
+    if (!shouldResetSwapchain && !viewConfigComponent.ColorSwapchain.get() || !viewConfigComponent.DepthSwapchain.get()) {
         shouldResetSwapchain = true;
     }
 
@@ -133,7 +134,7 @@ void ProjectionLayer::PrepareRendering(const SceneContext& sceneContext,
 
     // Create color swapchain with recommended properties.
     viewConfigComponent.ColorSwapchain =
-        sample::bg::CreateSwapchainD3D11(sceneContext.Session.Handle,
+        sample::bg::CreateSwapchain(sceneContext.Session.Handle,
                                          layerCurrentConfig.ColorSwapchainFormat,
                                          swapchainImageWidth * wideScale,
                                          swapchainImageHeight,
@@ -145,7 +146,7 @@ void ProjectionLayer::PrepareRendering(const SceneContext& sceneContext,
 
     // Create depth swapchain with recommended properties.
     viewConfigComponent.DepthSwapchain =
-        sample::bg::CreateSwapchainD3D11(sceneContext.Session.Handle,
+        sample::bg::CreateSwapchain(sceneContext.Session.Handle,
                                          layerCurrentConfig.DepthSwapchainFormat,
                                          swapchainImageWidth * wideScale,
                                          swapchainImageHeight,
@@ -189,24 +190,24 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
                              XrViewConfigurationType viewConfig) {
 
     ViewConfigComponent& viewConfigComponent = m_viewConfigComponents.at(viewConfig);
-    const sample::bg::SwapchainD3D11& colorSwapchain = viewConfigComponent.ColorSwapchain;
-    const sample::bg::SwapchainD3D11& depthSwapchain = viewConfigComponent.DepthSwapchain;
+    const sample::bg::Swapchain& colorSwapchain = *viewConfigComponent.ColorSwapchain;
+    const sample::bg::Swapchain& depthSwapchain = *viewConfigComponent.DepthSwapchain;
+
+    // Use the full range of recommended image size to achieve optimum resolution
+    const XrRect2Di imageRect = {{0, 0}, {(int32_t)colorSwapchain.Width, (int32_t)colorSwapchain.Height}};
+    CHECK(colorSwapchain.Width == depthSwapchain.Width);
+    CHECK(colorSwapchain.Height == depthSwapchain.Height);
+
+    const uint32_t colorSwapchainWait = AquireAndWaitForSwapchainImage(colorSwapchain.Handle.Get());
+    const uint32_t depthSwapchainWait = AquireAndWaitForSwapchainImage(depthSwapchain.Handle.Get());
+
     std::vector<XrCompositionLayerProjectionView>& projectionViews = viewConfigComponent.ProjectionViews;
     std::vector<XrCompositionLayerDepthInfoKHR>& depthInfo = viewConfigComponent.DepthInfo;
     std::vector<D3D11_VIEWPORT>& viewports = viewConfigComponent.Viewports;
     const ProjectionLayerConfig& currentConfig = viewConfigComponent.CurrentConfig;
 
     bool submitProjectionLayer = false;
-    const XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
-    uint32_t colorSwapchainImageIndex{};
-    CHECK_XRCMD(xrAcquireSwapchainImage(colorSwapchain.Handle.Get(), &acquireInfo, &colorSwapchainImageIndex));
-    uint32_t depthSwapchainImageIndex{};
-    CHECK_XRCMD(xrAcquireSwapchainImage(depthSwapchain.Handle.Get(), &acquireInfo, &depthSwapchainImageIndex));
 
-    XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
-    waitInfo.timeout = XR_INFINITE_DURATION;
-    const XrResult colorSwapchainWait = CHECK_XRCMD(xrWaitSwapchainImage(colorSwapchain.Handle.Get(), &waitInfo));
-    const XrResult depthSwapchainWait = CHECK_XRCMD(xrWaitSwapchainImage(depthSwapchain.Handle.Get(), &waitInfo));
     // For Hololens additive display, best to clear render target with transparent black color (0,0,0,0)
     constexpr DirectX::XMVECTORF32 opaqueColor = {0.184313729f, 0.309803933f, 0.309803933f, 1.000000000f};
     constexpr DirectX::XMVECTORF32 transparent = {0.000000000f, 0.000000000f, 0.000000000f, 0.000000000f};
@@ -217,52 +218,21 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
         // Swapchain image timeout, don't submit this multi projection layer
         submitProjectionLayer = false;
     } else {
-        const DirectX::XMVECTORF32 renderTargetClearColor =
-            (m_environmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE) ? opaqueColor : transparent;
         const uint32_t viewCount = (uint32_t)views.size();
-        auto colorTexture = colorSwapchain.Images[colorSwapchainWait].texture;
-        auto depthTexture = depthSwapchain.Images[depthSwapchainWait].texture;
-        const XrRect2Di imageRect = {{0, 0}, {(int32_t)colorSwapchain.Width, (int32_t)colorSwapchain.Height}};
-        auto iter = m_cachedFrameBuffers.find({colorTexture, depthTexture});
-        if (iter == m_cachedFrameBuffers.end()) {
-            unique_bgfx_handle<bgfx::TextureHandle> colorTex(
-                bgfx::createTexture2D(1,
-                                      1,
-                                      false,
-                                      (uint16_t)viewCount,
-                                      sample::bg::DxgiFormatToBgfxFormat(colorSwapchain.Format),
-                                      (sample::bg::IsSRGBFormat(colorSwapchain.Format) ? BGFX_TEXTURE_SRGB : 0) | BGFX_TEXTURE_RT));
-            unique_bgfx_handle<bgfx::TextureHandle> depthTex(bgfx::createTexture2D(
-                1, 1, false, (uint16_t)viewCount, sample::bg::DxgiFormatToBgfxFormat(depthSwapchain.Format), BGFX_TEXTURE_RT_WRITE_ONLY));
-            // Force BGFX to create the texture now, which is necessary in order to use overrideInternal.
-            bgfx::frame();
-            bgfx::overrideInternal(colorTex.get(), reinterpret_cast<uintptr_t>(colorTexture));
-            bgfx::overrideInternal(depthTex.get(), reinterpret_cast<uintptr_t>(depthTexture));
-
-            CachedFrameBuffer frameBuffer;
-            frameBuffer.FrameBuffers.resize(viewCount);
-            for (uint32_t k = 0; k < viewCount; k++) {
-                std::array<bgfx::Attachment, 2> attachments{};
-                attachments[0].init(colorTex.get(), bgfx::Access::Write, static_cast<uint16_t>(k));
-                attachments[1].init(depthTex.get(), bgfx::Access::Write, static_cast<uint16_t>(k));
-
-                frameBuffer.FrameBuffers[k] = unique_bgfx_handle<bgfx::FrameBufferHandle>(
-                    bgfx::createFrameBuffer(static_cast<uint8_t>(attachments.size()), attachments.data(), false));
-            }
-            iter = m_cachedFrameBuffers.emplace(std::make_tuple(colorTexture, depthTexture), std::move(frameBuffer)).first;
-        }
-        std::vector<unique_bgfx_handle<bgfx::FrameBufferHandle>>& frameBuffers = iter->second.FrameBuffers;
-        uint32_t clearColorRgba;
-        uint8_t* dst = reinterpret_cast<uint8_t*>(&clearColorRgba);
-        dst[3] = uint8_t(bx::toUnorm(renderTargetClearColor[0], 255.0f));
-        dst[2] = uint8_t(bx::toUnorm(renderTargetClearColor[1], 255.0f));
-        dst[1] = uint8_t(bx::toUnorm(renderTargetClearColor[2], 255.0f));
-        dst[0] = uint8_t(bx::toUnorm(renderTargetClearColor[3], 255.0f));
-
+        std::vector<xr::math::ViewProjection> viewProjections(viewCount);
+        
+        const bool reversedZ = (currentConfig.NearFar.Near > currentConfig.NearFar.Far);
         for (uint32_t viewIndex = 0; viewIndex < viewCount; viewIndex++) {
+            
+            viewProjections[viewIndex] = {views[viewIndex].pose, views[viewIndex].fov, m_nearFar};
             const XrView& projection = views[viewIndex];
+            DirectX::XMMATRIX worldToViewMatrix = xr::math::LoadInvertedXrPose(projectionViews[viewIndex].pose);
 
             const XrFovf fov = projection.fov;
+            const DirectX::XMMATRIX projectionMatrix = xr::math::ComposeProjectionMatrix(fov, currentConfig.NearFar);
+            sceneContext.PbrResources.SetViewProjection(worldToViewMatrix, projectionMatrix);
+            // sceneContext.PbrResources.Bind();
+            sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
             const XrPosef viewPose = projection.pose;
             xr::math::NearFar NearFar = currentConfig.NearFar;
             const float normalizedViewportMinDepth = 0;
@@ -296,56 +266,48 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
             } else {
                 projectionViews[viewIndex].next = nullptr;
             }
-          
+            
+            
+        }
+        // For Hololens additive display, best to clear render target with transparent black color (0,0,0,0)
+        /*constexpr DirectX::XMVECTORF32 opaqueColor = {0.184313729f, 0.309803933f, 0.309803933f, 1.000000000f};
+        constexpr DirectX::XMVECTORF32 transparent = {0.000000000f, 0.000000000f, 0.000000000f, 0.000000000f};*/
+        const DirectX::XMVECTORF32 renderTargetClearColor =
+            (m_environmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE) ? opaqueColor : transparent;
+        switch (bgfx::getRendererType()) {
+        case bgfx::RendererType::Direct3D11:
+            sample::bg::RenderView(imageRect,
+                                   renderTargetClearColor,
+                                   viewProjections,
+                                   colorSwapchain.Format,
+                                   ((sample::bg::SwapchainD3D11&)(colorSwapchain)).Images[colorSwapchainWait].texture,
+                                   depthSwapchain.Format,
+                                   ((sample::bg::SwapchainD3D11&)(depthSwapchain)).Images[depthSwapchainWait].texture);
+            break;
 
-            // Render for this view pose.
-            {
-                const bool reversedZ = (currentConfig.NearFar.Near > currentConfig.NearFar.Far);
-                const float depthClearValue = reversedZ ? 0.f : 1.f;
-                const DirectX::XMMATRIX spaceToView = xr::math::LoadInvertedXrPose(viewPose);
-                const DirectX::XMMATRIX projectionMatrix = xr::math::ComposeProjectionMatrix(fov, currentConfig.NearFar);
-                DirectX::XMFLOAT4X4 view;
-                DirectX::XMFLOAT4X4 proj;
-                DirectX::XMStoreFloat4x4(&view, spaceToView);
-                DirectX::XMStoreFloat4x4(&proj, projectionMatrix);
+        case bgfx::RendererType::Enum::Direct3D12:
+            printf("Direct3d12");
+            /*sample::bg::RenderView(
+                imageRect,
+                renderTargetClearColor,
+                viewProjections,
+                colorSwapchain.Format,
+                static_cast<sample::bg::SwapchainD3D12&>(*m_renderResources->ColorSwapchain).Images[colorSwapchainImageIndex].texture,
+                depthSwapchain.Format,
+                static_cast<sample::bg::SwapchainD3D12&>(*m_renderResources->DepthSwapchain).Images[depthSwapchainImageIndex].texture,
+                visibleCubes);*/
+            break;
 
-                const bgfx::ViewId viewId = bgfx::ViewId(viewIndex);
-                bgfx::setViewFrameBuffer(viewId, frameBuffers[viewIndex].get());
-                bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColorRgba, depthClearValue, 0);
-                bgfx::setViewRect(viewId,
-                                  (uint16_t)imageRect.offset.x,
-                                  (uint16_t)imageRect.offset.y,
-                                  (uint16_t)imageRect.extent.width,
-                                  (uint16_t)imageRect.extent.height);
-                bgfx::setViewTransform(viewId, view.m, proj.m);
-                // Set the Viewport.
-                sceneContext.DeviceContext->RSSetViewports(1, &viewport);
+        default:
+            CHECK(false);
+        }
 
-                const uint32_t firstArraySliceForColor = projectionViews[viewIndex].subImage.imageArrayIndex;
-
-
-                
-
-                if (reversedZ) {
-                    sceneContext.DeviceContext->OMSetDepthStencilState(m_reversedZDepthNoStencilTest.get(), 0);
-                } else {
-                    sceneContext.DeviceContext->OMSetDepthStencilState(nullptr, 0);
-                }
-
-                // Set state for any objects which use PBR rendering.
-                // PBR library expects traditional view transform (world to view).
-                DirectX::XMMATRIX worldToViewMatrix = xr::math::LoadInvertedXrPose(projectionViews[viewIndex].pose);
-
-                sceneContext.PbrResources.SetViewProjection(worldToViewMatrix, projectionMatrix);
-                //sceneContext.PbrResources.Bind();
-                sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
-
-                // Render all active scenes.
-                for (const std::unique_ptr<Scene>& scene : activeScenes) {
-                    if (scene->IsActive() && !std::empty(scene->GetSceneObjects())) {
-                        submitProjectionLayer = true;
-                        scene->Render(frameTime);
-                    }
+        // Render for this view pose.
+        {
+            for (const std::unique_ptr<Scene>& scene : activeScenes) {
+                if (scene->IsActive() && !std::empty(scene->GetSceneObjects())) {
+                    submitProjectionLayer = true;
+                    scene->Render(frameTime);
                 }
             }
         }
@@ -367,6 +329,5 @@ void AppendProjectionLayer(CompositionLayers& layers, const ProjectionLayer* lay
     projectionLayer.space = layer->LayerSpace(viewConfig);
     projectionLayer.viewCount = (uint32_t)layer->ProjectionViews(viewConfig).size();
     projectionLayer.views = layer->ProjectionViews(viewConfig).data();
-
 }
 

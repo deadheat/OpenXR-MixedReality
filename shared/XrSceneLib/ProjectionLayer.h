@@ -91,14 +91,16 @@ private:
         XrRect2Di LayerColorImageRect[xr::StereoView::Count];
         XrRect2Di LayerDepthImageRect[xr::StereoView::Count];
 
-        sample::bg::SwapchainD3D11 ColorSwapchain;
-        sample::bg::SwapchainD3D11 DepthSwapchain;
+        std::unique_ptr <sample::bg::Swapchain> ColorSwapchain;
+        std::unique_ptr<sample::bg::Swapchain> DepthSwapchain;
     };
     struct CachedFrameBuffer {
         std::vector<unique_bgfx_handle<bgfx::FrameBufferHandle>> FrameBuffers;
     };
 
-    std::map<std::tuple<void*, void*>, CachedFrameBuffer> m_cachedFrameBuffers;
+    // Choose a reasonable depth range can help improve hologram visual quality.
+    // Use reversed Z (near > far) for more uniformed Z resolution.
+    xr::math::NearFar m_nearFar{20.f, 0.1f};
 
     std::unordered_map<XrViewConfigurationType, ViewConfigComponent> m_viewConfigComponents;
     XrViewConfigurationType m_defaultViewConfigurationType;

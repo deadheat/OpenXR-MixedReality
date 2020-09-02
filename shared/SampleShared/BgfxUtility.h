@@ -15,7 +15,7 @@
 //*********************************************************
 #pragma once
 #include "pch.h"
-#include "BgfxUtility.h"
+//#include "BgfxUtility.h"
 #include "Trace.h"
 
 #pragma comment(lib, "D3DCompiler.lib")
@@ -70,6 +70,11 @@ template <typename bgfx_handle_t,
 using shared_bgfx_handle = wil::shared_any<unique_bgfx_handle<bgfx_handle_t, close_fn_t, close_fn>>;
 
 namespace sample::bg {
+    //enum class RendererType {
+    //    D3D11,
+    //    D3D12,
+    //};
+
     static bx::FileReaderI* s_fileReader = NULL;
     static bx::FileWriterI* s_fileWriter = NULL;
 
@@ -92,21 +97,43 @@ namespace sample::bg {
                        bool singleThreadedD3D11Device,
                        const std::vector<D3D_FEATURE_LEVEL>& appSupportedFeatureLevels);
 
-    struct SwapchainD3D11 {
+    struct Swapchain {
+        virtual ~Swapchain() = default;
+
         xr::SwapchainHandle Handle;
         DXGI_FORMAT Format{DXGI_FORMAT_UNKNOWN};
-        int32_t Width{0};
-        int32_t Height{0};
+        uint32_t Width{0};
+        uint32_t Height{0};
+        uint32_t ArraySize{0};
+    };
+    struct SwapchainD3D11 : public sample::bg::Swapchain {
         std::vector<XrSwapchainImageD3D11KHR> Images;
     };
 
-    SwapchainD3D11 __stdcall CreateSwapchainD3D11(XrSession session,
-                                        DXGI_FORMAT format,
-                                        int32_t width,
-                                        int32_t height,
-                                        uint32_t arrayLength,
-                                        uint32_t sampleCount,
-                                        XrSwapchainCreateFlags createFlags,
-                                        XrSwapchainUsageFlags usageFlags,
-                                        std::optional<XrViewConfigurationType> viewConfigurationForSwapchain = std::nullopt);
+    struct SwapchainD3D12 : public sample::bg::Swapchain {
+        //std::vector<XrSwapchainImageD3D12KHR> Images;
+    };
+    void RenderView(const XrRect2Di& imageRect,
+                    const float renderTargetClearColor[4],
+                    const std::vector<xr::math::ViewProjection>& viewProjections,
+                    DXGI_FORMAT colorSwapchainFormat,
+                    void* colorTexture,
+                    DXGI_FORMAT depthSwapchainFormat,
+                    void* depthTexture);
+    std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
+        XrSession session,
+        DXGI_FORMAT format,
+        uint32_t width,
+        uint32_t height,
+        uint32_t arraySize,
+        uint32_t sampleCount,
+        XrSwapchainCreateFlags createFlags,
+        XrSwapchainUsageFlags usageFlags,
+        std::optional<XrViewConfigurationType> viewConfigurationForSwapchain = std::nullopt);
+
+    struct CachedFrameBuffer {
+        std::vector<unique_bgfx_handle<bgfx::FrameBufferHandle>> FrameBuffers;
+        winrt::com_ptr<ID3D12CommandAllocator> CommandAllocator;
+    };
+    
 } // namespace sample::bgfx

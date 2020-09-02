@@ -117,7 +117,7 @@ namespace Pbr {
         mutable bgfx::InstanceDataBuffer m_modelTransformsStructuredBuffer;
         bool m_modelSet = false;
         mutable unique_bgfx_handle<bgfx::TextureHandle> m_modelTransformsResourceView;
-        std::map<std::tuple<void*, void*>, CachedFrameBuffer> m_cachedFrameBuffers;
+        //std::map<std::tuple<void*, void*>, CachedFrameBuffer> m_cachedFrameBuffers;
         mutable uint32_t TotalModifyCount{0};
     };
 } // namespace Pbr
