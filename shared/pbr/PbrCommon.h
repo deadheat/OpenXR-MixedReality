@@ -49,12 +49,12 @@ namespace Pbr {
 
     // Vertex structure used by the PBR shaders.
     struct Vertex {
-        DirectX::XMFLOAT3 Position;
+        DirectX::XMFLOAT4 Position;
         DirectX::XMFLOAT3 Normal;
         DirectX::XMFLOAT4 Tangent;
         DirectX::XMFLOAT4 Color0;
         DirectX::XMFLOAT2 TexCoord0;
-        NodeIndex_t ModelTransformIndex; // Index into the node transforms
+        //NodeIndex_t ModelTransformIndex; // Index into the node transforms
 
         //static const D3D11_INPUT_ELEMENT_DESC s_vertexDesc[6];
     };

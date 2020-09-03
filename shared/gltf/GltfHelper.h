@@ -27,7 +27,7 @@ namespace GltfHelper
     // Vertex data.
     struct Vertex
     {
-        DirectX::XMFLOAT3 Position;
+        DirectX::XMFLOAT4 Position;
         DirectX::XMFLOAT3 Normal;
         DirectX::XMFLOAT4 Tangent;
         DirectX::XMFLOAT2 TexCoord0;

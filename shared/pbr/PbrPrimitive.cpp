@@ -35,13 +35,12 @@ namespace {
         // Create Vertex Buffer BGFX
         bgfx::VertexLayout vertexLayout;
         vertexLayout.begin()
-            .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+            .add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
             .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
             .add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
-            .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
             .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Float)
+            .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
             .end();
-
         //// Create Vertex Buffer
         // D3D11_BUFFER_DESC desc{};
         // desc.Usage = D3D11_USAGE_DEFAULT;
@@ -149,7 +148,7 @@ namespace Pbr {
         // const UINT stride = sizeof(Pbr::Vertex);
         // const UINT offset = 0;
         // bgfx::VertexBufferHandle* const vertexBuffers[] = {&m_vertexBuffer.get()};
-        bgfx::setVertexBuffer(0, m_vertexBuffer.get(), 0, 1);
+        bgfx::setVertexBuffer(0, m_vertexBuffer.get());
         bgfx::setIndexBuffer(m_indexBuffer.get());
         /*context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
         context->IASetIndexBuffer(m_indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);

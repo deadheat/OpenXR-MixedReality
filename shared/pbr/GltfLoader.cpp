@@ -135,7 +135,7 @@ namespace {
                     pbrVertex.Tangent = vertex.Tangent;
                     pbrVertex.Color0 = vertex.Color0;
                     pbrVertex.TexCoord0 = vertex.TexCoord0;
-                    pbrVertex.ModelTransformIndex = transformIndex;
+                    //pbrVertex.ModelTransformIndex = transformIndex;
 
                     primitiveBuilder.Vertices[i + startVertex] = pbrVertex;
                 }

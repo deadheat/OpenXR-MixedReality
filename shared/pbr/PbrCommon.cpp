@@ -111,13 +111,13 @@ namespace Pbr {
                 const DirectX::XMVECTOR textureCoordinate = DirectX::XMVectorSet(u, v, 0, 0);
 
                 Pbr::Vertex vert;
-                XMStoreFloat3(&vert.Position, normal * radius);
-                XMStoreFloat3(&vert.Normal, normal);
+                XMStoreFloat4(&vert.Position, normal * radius);
+                //XMStoreFloat3(&vert.Normal, normal);
                 XMStoreFloat4(&vert.Tangent, tangent);
                 XMStoreFloat2(&vert.TexCoord0, textureCoordinate);
 
                 vert.Color0 = vertexColor;
-                vert.ModelTransformIndex = transformIndex;
+                //vert.ModelTransformIndex = transformIndex;
                 Vertices.push_back(vert);
             }
         }
@@ -196,12 +196,12 @@ namespace Pbr {
 
             for (int j = 0; j < 4; j++) {
                 Pbr::Vertex vert;
-                XMStoreFloat3(&vert.Position, positions[j] + translation);
+                XMStoreFloat4(&vert.Position, positions[j] + translation);
                 XMStoreFloat3(&vert.Normal, normal);
                 XMStoreFloat4(&vert.Tangent, side1); // TODO arbitrarily picked side 1
                 XMStoreFloat2(&vert.TexCoord0, textureCoordinates[j]);
                 vert.Color0 = vertexColor;
-                vert.ModelTransformIndex = transformIndex;
+                //vert.ModelTransformIndex = transformIndex;
                 Vertices.push_back(vert);
             }
         }
@@ -222,10 +222,10 @@ namespace Pbr {
                                                 Pbr::NodeIndex_t transformIndex,
                                                 RGBAColor vertexColor) {
         const DirectX::XMFLOAT2 halfSideLength = {sideLengths.x / 2, sideLengths.y / 2};
-        const DirectX::XMFLOAT3 vertices[4] = {{-halfSideLength.x, -halfSideLength.y, 0}, // LB
-                                               {-halfSideLength.x, halfSideLength.y, 0},  // LT
-                                               {halfSideLength.x, halfSideLength.y, 0},   // RT
-                                               {halfSideLength.x, -halfSideLength.y, 0}}; // RB
+        const DirectX::XMFLOAT4 vertices[4] = {{-halfSideLength.x, -halfSideLength.y, 0,0}, // LB
+                                               {-halfSideLength.x, halfSideLength.y, 0,0},  // LT
+                                               {halfSideLength.x, halfSideLength.y, 0,0},   // RT
+                                               {halfSideLength.x, -halfSideLength.y, 0,0}}; // RB
         const DirectX::XMFLOAT2 uvs[4] = {
             {0, textureCoord.y},
             {0, 0},
@@ -246,7 +246,7 @@ namespace Pbr {
         vert.Normal = {0, 0, 1};
         vert.Tangent = {1, 0, 0, 0};
         vert.Color0 = vertexColor;
-        vert.ModelTransformIndex = transformIndex;
+        //vert.ModelTransformIndex = transformIndex;
         for (size_t j = 0; j < _countof(vertices); j++) {
             vert.Position = vertices[j];
             vert.TexCoord0 = uvs[j];

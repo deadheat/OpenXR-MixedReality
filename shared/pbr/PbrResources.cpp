@@ -316,6 +316,7 @@ namespace Pbr {
         if (!m_impl->Resources.ShaderProgram.is_valid()) {
             sample::Trace(L"Program creation failed");
         }
+
         /*ID3D11Buffer* vsBuffers[] = {m_impl->Resources.SceneConstantBuffer.get(), m_impl->Resources.ModelConstantBuffer.get()};
         context->VSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(vsBuffers), vsBuffers);
         ID3D11Buffer* psBuffers[] = {m_impl->Resources.SceneConstantBuffer.get()};
@@ -381,8 +382,9 @@ namespace Pbr {
         // Set Depth Stencil State
         m_impl->Resources.StateFlags = disableDepthWrite ? m_impl->Resources.StateFlags : m_impl->Resources.StateFlags | BGFX_STATE_WRITE_R;
         m_impl->Resources.StateFlags = m_impl->Resources.StateFlags | BGFX_STATE_WRITE_MASK |
-                                       (m_impl->ReverseZ ? BGFX_STATE_DEPTH_TEST_GREATER : BGFX_STATE_DEPTH_TEST_LESS) |
-                                       BGFX_STATE_CULL_CCW;
+                                       (m_impl->ReverseZ ? BGFX_STATE_DEPTH_TEST_GREATER : BGFX_STATE_DEPTH_TEST_LESS);
+        m_impl->Resources.StateFlags &=  ~BGFX_STATE_CULL_CW;
+        m_impl->Resources.StateFlags |= BGFX_STATE_CULL_CCW;
         bgfx::setState(m_impl->Resources.StateFlags);
     }
     // void Resources::SetBlendState(_In_ ID3D11DeviceContext* context, bool enabled) const {

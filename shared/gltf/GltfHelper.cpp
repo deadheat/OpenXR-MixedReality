@@ -80,9 +80,9 @@ namespace
             GltfHelper::Vertex& v2 = primitive.Vertices[primitive.Indices[i + 2]];
 
             // Compute normal. Normalization happens later.
-            const XMVECTOR pos0 = XMLoadFloat3(&v0.Position);
-            const XMVECTOR d0 = XMVectorSubtract(XMLoadFloat3(&v2.Position), pos0);
-            const XMVECTOR d1 = XMVectorSubtract(XMLoadFloat3(&v1.Position), pos0);
+            const XMVECTOR pos0 = XMLoadFloat4(&v0.Position);
+            const XMVECTOR d0 = XMVectorSubtract(XMLoadFloat4(&v2.Position), pos0);
+            const XMVECTOR d1 = XMVectorSubtract(XMLoadFloat4(&v1.Position), pos0);
             const XMVECTOR normal = XMVector3Cross(d0, d1);
 
             // Add the normal to the three vertices of the triangle. Normals are added
@@ -314,18 +314,18 @@ namespace
             throw std::exception("Accessor for COLOR_0 uses unsupported component type.");
         }
     }
-
-    // Reads VEC3 attribute data (like POSITION and NORMAL) from a glTF primitive into a GltfHelper Primitive. The specific Vertex field is specified as a template parameter.
+    // Reads VEC3 attribute data (like POSITION and NORMAL) from a glTF primitive into a GltfHelper Primitive. The specific Vertex field is
+    // specified as a template parameter.
     template <XMFLOAT3 GltfHelper::Vertex::*field>
-    void XM_CALLCONV ReadVec3ToVertexField(const tinygltf::Accessor& accessor, const tinygltf::BufferView& bufferView, const tinygltf::Buffer& buffer, GltfHelper::Primitive& primitive)
-    {
-        if (accessor.type != TINYGLTF_TYPE_VEC3)
-        {
+    void XM_CALLCONV ReadVec3ToVertexField(const tinygltf::Accessor& accessor,
+                                           const tinygltf::BufferView& bufferView,
+                                           const tinygltf::Buffer& buffer,
+                                           GltfHelper::Primitive& primitive) {
+        if (accessor.type != TINYGLTF_TYPE_VEC3) {
             throw std::exception("Accessor for primitive attribute has incorrect type (VEC3 expected).");
         }
 
-        if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT)
-        {
+        if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT) {
             throw std::exception("Accessor for primitive attribute has incorrect component type (FLOAT expected).");
         }
 
@@ -340,9 +340,39 @@ namespace
 
         // Copy the attribute value over from the glTF buffer into the appropriate vertex field.
         const uint8_t* bufferPtr = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
+        for (size_t i = 0; i < accessor.count; i++, bufferPtr += stride) {
+            (primitive.Vertices[i].*field) = *reinterpret_cast<const XMFLOAT3*>(bufferPtr);
+        }
+    }
+
+    // Reads VEC4 attribute data (like POSITION and NORMAL) from a glTF primitive into a GltfHelper Primitive. The specific Vertex field is specified as a template parameter.
+    template <XMFLOAT4 GltfHelper::Vertex::*field>
+    void XM_CALLCONV ReadVec4ToVertexField(const tinygltf::Accessor& accessor, const tinygltf::BufferView& bufferView, const tinygltf::Buffer& buffer, GltfHelper::Primitive& primitive)
+    {
+        if (accessor.type != TINYGLTF_TYPE_VEC4)
+        {
+            throw std::exception("Accessor for primitive attribute has incorrect type (VEC4 expected).");
+        }
+
+        if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT)
+        {
+            throw std::exception("Accessor for primitive attribute has incorrect component type (FLOAT expected).");
+        }
+
+        // If stride is not specified, it is tightly packed.
+        constexpr size_t PackedSize = sizeof(XMFLOAT4);
+        const size_t stride = bufferView.byteStride == 0 ? PackedSize : bufferView.byteStride;
+        ValidateAccessor(accessor, bufferView, buffer, stride, PackedSize);
+
+        // Resize the vertices vector, if necessary, to include room for the attribute data.
+        // If there are multiple attributes for a primitive, the first one will resize, and the subsequent will not need to.
+        primitive.Vertices.resize(accessor.count);
+
+        // Copy the attribute value over from the glTF buffer into the appropriate vertex field.
+        const uint8_t* bufferPtr = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
         for (size_t i = 0; i < accessor.count; i++, bufferPtr += stride)
         {
-            (primitive.Vertices[i].*field) = *reinterpret_cast<const XMFLOAT3*>(bufferPtr);
+            (primitive.Vertices[i].*field) = *reinterpret_cast<const XMFLOAT4*>(bufferPtr);
         }
     }
 
@@ -368,7 +398,7 @@ namespace
 
         if (attributeName.compare("POSITION") == 0)
         {
-            ReadVec3ToVertexField<&GltfHelper::Vertex::Position>(accessor, bufferView, buffer, primitive);
+            ReadVec4ToVertexField<&GltfHelper::Vertex::Position>(accessor, bufferView, buffer, primitive);
         }
         else if (attributeName.compare("NORMAL") == 0)
         {

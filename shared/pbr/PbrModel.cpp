@@ -139,7 +139,11 @@ namespace Pbr
                 desc.StructureByteStride = sizeof(decltype(m_modelTransforms)::value_type);
                 desc.ByteWidth = (UINT)(m_modelTransforms.size() * desc.StructureByteStride);*/
                 const uint32_t numInstances = 121;
-                bgfx::allocInstanceDataBuffer(&m_modelTransformsStructuredBuffer, numInstances, sizeof(decltype(m_modelTransforms)::value_type));
+                const uint32_t instanceStride = sizeof(decltype(m_modelTransforms)::value_type);
+                if (numInstances == bgfx::getAvailInstanceDataBuffer(numInstances, instanceStride)) {
+                    bgfx::allocInstanceDataBuffer(
+                        &m_modelTransformsStructuredBuffer, numInstances, instanceStride);
+                }
 
 
 
@@ -167,11 +171,12 @@ namespace Pbr
                 
                 XMStoreFloat4x4(&m_modelTransforms[node.Index], XMMatrixMultiply(parentTransform, XMMatrixTranspose(node.GetTransform())));
             }
-            
-            bgfx::InstanceDataBuffer x;
+            // this is causing errors somewhere, find a better way to set the instance data
+            //bgfx::InstanceDataBuffer x;
             // Seyi NOTE: This casting may not work
-            x.data = (uint8_t*) m_modelTransforms.data();
-            m_modelTransformsStructuredBuffer = x;
+            uint8_t* data = m_modelTransformsStructuredBuffer.data;
+            memcpy(data, m_modelTransforms.data(), m_modelTransformsStructuredBuffer.stride);
+            
                 //.data = (uint8_t*) m_modelTransforms.data();
             // Update node transform structured buffer.
             //context->UpdateSubresource(m_modelTransformsStructuredBuffer.get(), 0, nullptr, this->m_modelTransforms.data(), 0, 0);

@@ -61,7 +61,7 @@ namespace Pbr {
         uint64_t AlphaBlendState;
         uint64_t DefaultBlendState;
         uint64_t RasterizerStates[2][2][2]; // Three dimensions for [DoubleSide][Wireframe][FrontCounterClockWise]
-        uint64_t StateFlags;
+        uint64_t StateFlags{0};
         uint64_t DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
         mutable std::map<uint32_t, shared_bgfx_handle<bgfx::TextureHandle>> SolidColorTextureCache;
     };
