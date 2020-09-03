@@ -51,7 +51,7 @@ namespace Pbr {
 
             Resources.PbrVertexShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_PbrVertexShader"));
 
-            Resources.PbrVertexShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_HighlightVertexShader"));
+            Resources.HighlightVertexShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_HighlightVertexShader"));
 
             // Seyi NOTE: since there are no constant buffers in bgfx, will find some type of way to implement without
 
@@ -312,9 +312,10 @@ namespace Pbr {
             vsh = std::move(m_impl->Resources.PbrVertexShader.get());
             fsh = std::move(m_impl->Resources.PbrPixelShader.get());
         }
-
         m_impl->Resources.ShaderProgram.reset(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
-
+        if (!m_impl->Resources.ShaderProgram.is_valid()) {
+            sample::Trace(L"Program creation failed");
+        }
         /*ID3D11Buffer* vsBuffers[] = {m_impl->Resources.SceneConstantBuffer.get(), m_impl->Resources.ModelConstantBuffer.get()};
         context->VSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(vsBuffers), vsBuffers);
         ID3D11Buffer* psBuffers[] = {m_impl->Resources.SceneConstantBuffer.get()};
