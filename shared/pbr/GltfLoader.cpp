@@ -129,15 +129,21 @@ namespace {
                 primitiveBuilder.Vertices.resize(startVertex + primitive.Vertices.size());
                 for (size_t i = 0; i < primitive.Vertices.size(); i++) {
                     const GltfHelper::Vertex& vertex = primitive.Vertices[i];
-                    Pbr::Vertex pbrVertex;
-                    pbrVertex.Position = vertex.Position;
-                    pbrVertex.Normal = vertex.Normal;
-                    pbrVertex.Tangent = vertex.Tangent;
-                    pbrVertex.Color0 = vertex.Color0;
-                    pbrVertex.TexCoord0 = vertex.TexCoord0;
+                    Pbr::Vertex vert; // used to be pbrVertex
+
+                    //pbrVertex.Position = vertex.Position;
+                    //pbrVertex.Normal = vertex.Normal;
+                    //pbrVertex.Tangent = vertex.Tangent;
+                    //pbrVertex.Color0 = vertex.Color0;
+                    //pbrVertex.TexCoord0 = vertex.TexCoord0;
+                    memcpy(vert.Position, &(vertex.Position), sizeof(vert.Position));
+                    memcpy(vert.Normal, &(vertex.Normal), sizeof(vert.Normal));
+                    memcpy(vert.Tangent, &(vertex.Tangent), sizeof(vert.Tangent));
+                    memcpy(vert.TexCoord0, &(vertex.TexCoord0), sizeof(vert.TexCoord0));
+                    memcpy(vert.Color0, &(vertex.Color0), sizeof(vert.Color0));
                     //pbrVertex.ModelTransformIndex = transformIndex;
 
-                    primitiveBuilder.Vertices[i + startVertex] = pbrVertex;
+                    primitiveBuilder.Vertices[i + startVertex] = vert;
                 }
 
                 // Insert indicies with reverse winding order.

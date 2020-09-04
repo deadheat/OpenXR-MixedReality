@@ -32,15 +32,16 @@ namespace {
     }
 
     bgfx::VertexBufferHandle CreateVertexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder, bool updatableBuffers) {
+        Pbr::Vertex::init();
         // Create Vertex Buffer BGFX
-        bgfx::VertexLayout vertexLayout;
-        vertexLayout.begin()
-            .add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
-            .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
-            .add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
-            .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Float)
-            .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-            .end();
+        //bgfx::VertexLayout vertexLayout;
+        //vertexLayout.begin()
+        //    .add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
+        //    .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+        //    .add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
+        //    .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Float)
+        //    .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+        //    .end();
         //// Create Vertex Buffer
         // D3D11_BUFFER_DESC desc{};
         // desc.Usage = D3D11_USAGE_DEFAULT;
@@ -60,7 +61,7 @@ namespace {
         //
         // vertexBuffer.copy_from(&rawVertexBuffer);
         return bgfx::createVertexBuffer(bgfx::makeRef(primitiveBuilder.Vertices.data(), sizeof(primitiveBuilder.Vertices.data())),
-                                        vertexLayout);
+                                        Pbr::Vertex::ms_layout);
     }
 
     bgfx::IndexBufferHandle CreateIndexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder
@@ -106,6 +107,7 @@ namespace Pbr {
                     shared_bgfx_handle<bgfx::IndexBufferHandle>(CreateIndexBuffer(primitiveBuilder /*, updatableBuffers*/)),
                     shared_bgfx_handle<bgfx::VertexBufferHandle>(CreateVertexBuffer(primitiveBuilder, updatableBuffers)),
                     std::move(material)) {
+        
     }
 
     Primitive Primitive::Clone(Pbr::Resources const& pbrResources) const {

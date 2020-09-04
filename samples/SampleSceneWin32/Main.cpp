@@ -30,7 +30,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
         auto app = CreateXrApp(appConfig);
         app->AddScene(TryCreateTitleScene(app->SceneContext()));
         app->AddScene(TryCreateControllerModelScene(app->SceneContext()));
-        app->Run();
+         app->Run();
     } catch (const std::exception& ex) {
         sample::Trace("Unhandled Exception: {}", ex.what());
         return 1;

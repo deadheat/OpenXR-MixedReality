@@ -259,7 +259,7 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
         init.resolution.width = 1280;
         init.resolution.height = 720;
         init.resolution.reset = BGFX_RESET_SRGB_BACKBUFFER;
-
+        init.debug = true;
         bgfx::init(init);
         bgfx::frame();
 

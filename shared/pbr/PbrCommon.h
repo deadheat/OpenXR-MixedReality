@@ -49,15 +49,24 @@ namespace Pbr {
 
     // Vertex structure used by the PBR shaders.
     struct Vertex {
-        DirectX::XMFLOAT4 Position;
-        DirectX::XMFLOAT3 Normal;
-        DirectX::XMFLOAT4 Tangent;
-        DirectX::XMFLOAT4 Color0;
-        DirectX::XMFLOAT2 TexCoord0;
-        //NodeIndex_t ModelTransformIndex; // Index into the node transforms
+        float Position[4];
+        float Normal[3];
+        float Tangent[4];
+        float Color0[4];
+        float TexCoord0[2];
+        static void init() {
+            ms_layout.begin()
+                .add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
+                .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+                .add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
+                .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Float)
+                .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+                .end();
+        }
 
-        //static const D3D11_INPUT_ELEMENT_DESC s_vertexDesc[6];
+        static bgfx::VertexLayout ms_layout;
     };
+    
 
     struct PrimitiveBuilder {
         std::vector<Pbr::Vertex> Vertices;

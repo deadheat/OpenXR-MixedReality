@@ -38,6 +38,7 @@ namespace Pbr {
         const std::shared_ptr<Material>& GetMaterial() const {
             return m_material;
         }
+  
 
     protected:
         friend struct Model;

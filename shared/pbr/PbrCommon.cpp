@@ -19,6 +19,7 @@ using namespace DirectX;
 #define TRIANGLE_VERTEX_COUNT 3 // #define so it can be used in lambdas without capture
 
 namespace Pbr {
+    
     namespace Internal {
         void ThrowIfFailed(HRESULT hr) {
             if (FAILED(hr)) {
@@ -67,7 +68,7 @@ namespace Pbr {
 
         return *this;
     }
-
+    bgfx::VertexLayout Vertex::ms_layout;
     // Based on code from DirectXTK
     PrimitiveBuilder&
     PrimitiveBuilder::AddSphere(float diameter, uint32_t tessellation, Pbr::NodeIndex_t transformIndex, RGBAColor vertexColor) {
@@ -111,12 +112,19 @@ namespace Pbr {
                 const DirectX::XMVECTOR textureCoordinate = DirectX::XMVectorSet(u, v, 0, 0);
 
                 Pbr::Vertex vert;
-                XMStoreFloat4(&vert.Position, normal * radius);
+                //XMStoreFloat4(&vert.Position, normal * radius);
                 //XMStoreFloat3(&vert.Normal, normal);
-                XMStoreFloat4(&vert.Tangent, tangent);
-                XMStoreFloat2(&vert.TexCoord0, textureCoordinate);
+                //XMStoreFloat4(&vert.Tangent, tangent);
+                //XMStoreFloat2(&vert.TexCoord0, textureCoordinate);
+                //vert.Color0 = vertexColor;
 
-                vert.Color0 = vertexColor;
+                memcpy(vert.Position, &(normal * radius), sizeof(vert.Position));
+                memcpy(vert.Normal, &(normal), sizeof(vert.Normal));
+                memcpy(vert.Tangent, &(tangent), sizeof(vert.Tangent));
+                memcpy(vert.TexCoord0, &(textureCoordinate), sizeof(vert.TexCoord0));
+                memcpy(vert.Color0, &(vertexColor), sizeof(vert.Color0));
+
+
                 //vert.ModelTransformIndex = transformIndex;
                 Vertices.push_back(vert);
             }
@@ -196,12 +204,17 @@ namespace Pbr {
 
             for (int j = 0; j < 4; j++) {
                 Pbr::Vertex vert;
-                XMStoreFloat4(&vert.Position, positions[j] + translation);
-                XMStoreFloat3(&vert.Normal, normal);
-                XMStoreFloat4(&vert.Tangent, side1); // TODO arbitrarily picked side 1
-                XMStoreFloat2(&vert.TexCoord0, textureCoordinates[j]);
-                vert.Color0 = vertexColor;
+                //XMStoreFloat4(&vert.Position, positions[j] + translation);
+                //XMStoreFloat3(&vert.Normal, normal);
+                //XMStoreFloat4(&vert.Tangent, side1); // TODO arbitrarily picked side 1
+                //XMStoreFloat2(&vert.TexCoord0, textureCoordinates[j]);
+                //vert.Color0 = vertexColor;
                 //vert.ModelTransformIndex = transformIndex;
+                memcpy(vert.Position, &(positions[j] + translation), sizeof(vert.Position));
+                memcpy(vert.Normal, &(normal), sizeof(vert.Normal));
+                memcpy(vert.Tangent, &(side1), sizeof(vert.Tangent)); // TODO arbitrarily picked side 1
+                memcpy(vert.TexCoord0, &(textureCoordinates[j]), sizeof(vert.TexCoord0));
+                memcpy(vert.Color0, &(vertexColor), sizeof(vert.Color0));
                 Vertices.push_back(vert);
             }
         }
@@ -243,13 +256,21 @@ namespace Pbr {
         Indices.push_back(vbase + 3);
 
         Pbr::Vertex vert;
-        vert.Normal = {0, 0, 1};
-        vert.Tangent = {1, 0, 0, 0};
-        vert.Color0 = vertexColor;
+       
+
+
+        float _normal[3] = {0, 0, 1};
+        float _tangent[4] = {1, 0, 0, 0};
+        //vert.Color0 = vertexColor;
+        memcpy(vert.Normal, &(_normal), sizeof(vert.Normal));
+        memcpy(vert.Tangent, &(_tangent), sizeof(vert.Tangent)); // TODO arbitrarily picked side 1
+        memcpy(vert.Color0, &(vertexColor), sizeof(vert.Color0));
         //vert.ModelTransformIndex = transformIndex;
         for (size_t j = 0; j < _countof(vertices); j++) {
-            vert.Position = vertices[j];
-            vert.TexCoord0 = uvs[j];
+            //vert.Position = vertices[j];
+            //vert.TexCoord0 = uvs[j];
+            memcpy(vert.Position, &(vertices[j]), sizeof(vert.Position));
+            memcpy(vert.TexCoord0, &(uvs[j]), sizeof(vert.TexCoord0));
             Vertices.push_back(vert);
         }
         return *this;
