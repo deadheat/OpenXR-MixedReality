@@ -12,6 +12,7 @@
 
 #include <bgfx/platform.h>
 #include <bgfx/embedded_shader.h>
+#include "SampleShared/BgfxUtility.h"
 #include "Shaders/Compiled/fs_HighlightPixelShader.bin.h"
 #include "Shaders/Compiled/fs_PbrPixelShader.bin.h"
 #include "Shaders/Compiled/vs_HighlightVertexShader.bin.h"
@@ -34,15 +35,6 @@ namespace Pbr {
             //                                                  g_PbrVertexShader,
             //                                                  sizeof(g_PbrVertexShader),
             //                                                  Resources.InputLayout.put()));
-            bgfx::VertexLayout vertexLayout;
-            vertexLayout.begin()
-                .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
-                .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
-                .add(bgfx::Attrib::Tangent, 4, bgfx::AttribType::Float)
-                .add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Float)
-                .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
-                .add(bgfx::Attrib::Indices, 1, bgfx::AttribType::Int16)
-                .end();
             // Set up pixel shader.
             bgfx::RendererType::Enum type = bgfx::RendererType::Direct3D11;
             Resources.PbrPixelShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "fs_PbrPixelShader"));
@@ -52,6 +44,22 @@ namespace Pbr {
             Resources.PbrVertexShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_PbrVertexShader"));
 
             Resources.HighlightVertexShader.reset(bgfx::createEmbeddedShader(s_embeddedShaders, type, "vs_HighlightVertexShader"));
+
+
+            bgfx::ShaderHandle vsh;
+            bgfx::ShaderHandle fsh;
+
+            if (Shading == ShadingMode::Highlight) {
+                vsh = Resources.HighlightVertexShader.get();
+                fsh = Resources.HighlightPixelShader.get();
+            } else {
+                vsh = std::move(Resources.PbrVertexShader.get());
+                fsh = std::move(Resources.PbrPixelShader.get());
+            }
+            Resources.ShaderProgram.reset(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
+            if (!Resources.ShaderProgram.is_valid()) {
+                sample::Trace(L"Program creation failed");
+            }
 
             // Seyi NOTE: since there are no constant buffers in bgfx, will find some type of way to implement without
 
@@ -302,20 +310,7 @@ namespace Pbr {
                  context->PSSetShader(m_impl->Resources.PbrPixelShader.get(), nullptr, 0);
              }*/
 
-        bgfx::ShaderHandle vsh;
-        bgfx::ShaderHandle fsh;
 
-        if (m_impl->Shading == ShadingMode::Highlight) {
-            vsh = m_impl->Resources.HighlightVertexShader.get();
-            fsh = m_impl->Resources.HighlightPixelShader.get();
-        } else {
-            vsh = std::move(m_impl->Resources.PbrVertexShader.get());
-            fsh = std::move(m_impl->Resources.PbrPixelShader.get());
-        }
-        m_impl->Resources.ShaderProgram.reset(bgfx::createProgram(vsh, fsh, true /* destroy shaders when program is destroyed */));
-        if (!m_impl->Resources.ShaderProgram.is_valid()) {
-            sample::Trace(L"Program creation failed");
-        }
 
         /*ID3D11Buffer* vsBuffers[] = {m_impl->Resources.SceneConstantBuffer.get(), m_impl->Resources.ModelConstantBuffer.get()};
         context->VSSetConstantBuffers(Pbr::ShaderSlots::ConstantBuffers::Scene, _countof(vsBuffers), vsBuffers);

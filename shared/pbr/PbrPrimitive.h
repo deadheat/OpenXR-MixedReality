@@ -42,7 +42,7 @@ namespace Pbr {
 
     protected:
         friend struct Model;
-        void Render() const;
+        void Render(const Resources& pbrResources) const;
         Primitive Clone(Pbr::Resources const& pbrResources) const;
 
     private:

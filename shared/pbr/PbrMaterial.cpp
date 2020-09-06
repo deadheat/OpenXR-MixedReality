@@ -126,8 +126,7 @@ namespace Pbr {
             //context->UpdateSubresource(m_constantBuffer.get(), 0, nullptr, &m_parameters, 0, 0);
         }
 
-        // In bgfx all the state is set at once and not broken up
-        pbrResources.SetState(m_alphaBlended, m_alphaBlended, m_doubleSided, m_wireframe);
+        
         
 
         //pbrResources.SetBlendState(m_alphaBlended);
@@ -142,15 +141,20 @@ namespace Pbr {
         //static_assert(Pbr::ShaderSlots::BaseColor == 0, "BaseColor must be the first slot");
 
         for (unsigned int i = 0; i < m_samplers.size(); i++) {
-            bgfx::setTexture(i, m_samplers[i].get(), m_textures[i].get());
+            bgfx::setTexture(i, m_samplers[i].get(), m_textures[i].get());            
         }
+
+        // In bgfx all the state is set at once and not broken up
+        pbrResources.SetState(m_alphaBlended, m_alphaBlended, m_doubleSided, m_wireframe);
+        // Force BGFX to create the texture now, which is necessary in order to use overrideInternal.
+        //bgfx::touch();
         //setUniform(textures[0], textures.data(), (UINT)textures.size());
         //context->PSSetShaderResources(Pbr::ShaderSlots::BaseColor, (UINT)textures.size(), textures.data()  );
 
         
         //setUniform(samplers[0], samplers.data(), (UINT)samplers.size());
         //context->PSSetSamplers(Pbr::ShaderSlots::BaseColor, (UINT)samplers.size(), samplers.data());
-        pbrResources.SubmitProgram();
+        
     }
 
     Material::ConstantBufferData& Material::Parameters() {

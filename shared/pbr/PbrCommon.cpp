@@ -14,6 +14,8 @@
 #include <bgfx/platform.h>
 #include <bgfx/embedded_shader.h>
 #include "SampleShared/bgfx_utils.h"
+#include "SampleShared/BgfxUtility.h"
+
 using namespace DirectX;
 
 #define TRIANGLE_VERTEX_COUNT 3 // #define so it can be used in lambdas without capture

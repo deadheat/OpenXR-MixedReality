@@ -298,7 +298,11 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
                     DXGI_FORMAT colorSwapchainFormat,
                     void* colorTexture,
                     DXGI_FORMAT depthSwapchainFormat,
-                    void* depthTexture) {
+                    void* depthTexture
+                    ,const std::vector<std::unique_ptr<Scene>>& activeScenes,
+                    const FrameTime& frameTime, 
+                    bool& submitProjectionLayer
+    ) {
         const uint32_t viewInstanceCount = (uint32_t)viewProjections.size();
         /* CHECK_MSG(viewInstanceCount <= CubeShader::MaxViewInstance,
                    "Sample shader supports 2 or fewer view instances. Adjust shader to accommodate more.");*/
@@ -396,7 +400,7 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
             DirectX::XMStoreFloat4x4(&proj, projectionMatrix);
 
             const bgfx::ViewId viewId = bgfx::ViewId(k);
-            //bgfx::setViewFrameBuffer(viewId, frameBuffers[k].get());
+            bgfx::setViewFrameBuffer(viewId, frameBuffers[k].get());
             bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColorRgba, depthClearValue, 0);
             bgfx::setViewRect(viewId,
                               (uint16_t)imageRect.offset.x,
@@ -406,6 +410,17 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
             bgfx::setViewTransform(viewId, view.m, proj.m);
 
             bgfx::touch(viewId);
+
+
+            {
+                for (const std::unique_ptr<Scene>& scene : activeScenes) {
+                    if (scene->IsActive() && !std::empty(scene->GetSceneObjects())) {
+                        submitProjectionLayer = true;
+                        scene->Render(frameTime);
+                    }
+                }
+            }
+
 
             //    // Render each cube
             //    for (const sample::Cube* cube : cubes) {

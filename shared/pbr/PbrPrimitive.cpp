@@ -60,8 +60,12 @@ namespace {
         // bgfx::VertexBufferHandle rawVertexBuffer =
         //
         // vertexBuffer.copy_from(&rawVertexBuffer);
-        return bgfx::createVertexBuffer(bgfx::makeRef(primitiveBuilder.Vertices.data(), sizeof(primitiveBuilder.Vertices.data())),
+        size_t numVertex = primitiveBuilder.Vertices.size();
+        size_t sizeOfVertex = sizeof(primitiveBuilder.Vertices[0]);
+        return bgfx::createVertexBuffer(
+            bgfx::makeRef(&primitiveBuilder.Vertices[0], (uint32_t)(sizeOfVertex*numVertex)),
                                         Pbr::Vertex::ms_layout);
+
     }
 
     bgfx::IndexBufferHandle CreateIndexBuffer(const Pbr::PrimitiveBuilder& primitiveBuilder
@@ -146,12 +150,13 @@ namespace Pbr {
         }
     }
 
-    void Primitive::Render() const {
+    void Primitive::Render(const Resources& pbrResources) const {
         // const UINT stride = sizeof(Pbr::Vertex);
         // const UINT offset = 0;
         // bgfx::VertexBufferHandle* const vertexBuffers[] = {&m_vertexBuffer.get()};
         bgfx::setVertexBuffer(0, m_vertexBuffer.get());
         bgfx::setIndexBuffer(m_indexBuffer.get());
+        
         /*context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
         context->IASetIndexBuffer(m_indexBuffer.get(), DXGI_FORMAT_R32_UINT, 0);
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

@@ -168,6 +168,8 @@ void ProjectionLayer::PrepareRendering(const SceneContext& sceneContext,
 
     viewConfigComponent.ProjectionViews.resize(viewConfigViews.size());
     viewConfigComponent.DepthInfo.resize(viewConfigViews.size());
+    //Moved resource binding here so its not binding everytime it renders
+    sceneContext.PbrResources.Bind();
 }
 
 uint32_t AquireAndWaitForSwapchainImage(XrSwapchain handle) {
@@ -282,7 +284,11 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
                                    colorSwapchain.Format,
                                    ((sample::bg::SwapchainD3D11&)(colorSwapchain)).Images[colorSwapchainWait].texture,
                                    depthSwapchain.Format,
-                                   ((sample::bg::SwapchainD3D11&)(depthSwapchain)).Images[depthSwapchainWait].texture);
+                                   ((sample::bg::SwapchainD3D11&)(depthSwapchain)).Images[depthSwapchainWait].texture
+                                   ,activeScenes,
+                                   frameTime,
+                                   submitProjectionLayer
+            );
             break;
 
         case bgfx::RendererType::Enum::Direct3D12:
@@ -303,14 +309,14 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
         }
 
         // Render for this view pose.
-        {
+        /*{
             for (const std::unique_ptr<Scene>& scene : activeScenes) {
                 if (scene->IsActive() && !std::empty(scene->GetSceneObjects())) {
                     submitProjectionLayer = true;
                     scene->Render(frameTime);
                 }
             }
-        }
+        }*/
     }
 
     // Now that the scene is done writing to the swapchain, it must be released in order to be made available for

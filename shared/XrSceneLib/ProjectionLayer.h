@@ -19,8 +19,8 @@
 #include <XrUtility/XrStereoView.h>
 #include <XrUtility/XrHandle.h>
 #include <XrUtility/XrMath.h>
-#include <SampleShared/BgfxUtility.h>
 #include <SampleShared/DxUtility.h>
+#include <SampleShared/bgfx_utils.h>
 #include "SceneContext.h"
 #include "FrameTime.h"
 

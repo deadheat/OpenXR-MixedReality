@@ -2,7 +2,8 @@
  * Copyright 2011-2020 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bgfx#license-bsd-2-clause
  */
-
+#pragma once
+#include "pch.h"
 #ifndef BGFX_UTILS_H_HEADER_GUARD
 #define BGFX_UTILS_H_HEADER_GUARD
 
@@ -10,12 +11,68 @@
 #include <bgfx/bgfx.h>
 #include <bimg/bimg.h>
 #include "bounds.h"
+#include <d3dcommon.h>  //ID3DBlob
+#include <XrUtility/XrHandle.h>
+#include <XrUtility/XrExtensionContext.h>
 
 #include <tinystl/allocator.h>
 #include <tinystl/vector.h>
+#include <wil/resource.h>
+
 namespace stl = tinystl;
 
+template <typename bgfx_handle_t>
+struct bgfx_handle_wrapper_t : public bgfx_handle_t {
+    bgfx_handle_wrapper_t() {
+        this->idx = bgfx::kInvalidHandle;
+    }
 
+    bgfx_handle_wrapper_t(const bgfx_handle_t& handle) {
+        this->idx = handle.idx;
+    }
+
+    bgfx_handle_wrapper_t(const uint16_t& handle) {
+        this->idx = handle;
+    }
+
+    operator uint16_t() const {
+        return this->idx;
+    }
+};
+
+template <typename bgfx_handle_t, typename close_fn_t = void (*)(bgfx_handle_t), close_fn_t close_fn = bgfx::destroy>
+using unique_bgfx_handle = wil::unique_any<bgfx_handle_wrapper_t<bgfx_handle_t>,
+                                           close_fn_t,
+                                           close_fn,
+                                           wil::details::pointer_access_all,
+                                           bgfx_handle_wrapper_t<bgfx_handle_t>,
+                                           decltype(bgfx::kInvalidHandle),
+                                           bgfx::kInvalidHandle,
+                                           bgfx_handle_wrapper_t<bgfx_handle_t>>;
+
+template <typename bgfx_handle_t,
+          typename close_fn_t = void (*)(bgfx_handle_t),
+          close_fn_t close_fn = bgfx::destroy>
+using shared_bgfx_handle = wil::shared_any<unique_bgfx_handle<bgfx_handle_t, close_fn_t, close_fn>>;
+
+namespace sample::bg {
+    struct Swapchain {
+        virtual ~Swapchain() = default;
+
+        xr::SwapchainHandle Handle;
+        DXGI_FORMAT Format{DXGI_FORMAT_UNKNOWN};
+        uint32_t Width{0};
+        uint32_t Height{0};
+        uint32_t ArraySize{0};
+    };
+    struct SwapchainD3D11 : public sample::bg::Swapchain {
+        std::vector<XrSwapchainImageD3D11KHR> Images;
+    };
+
+    struct SwapchainD3D12 : public sample::bg::Swapchain {
+        // std::vector<XrSwapchainImageD3D12KHR> Images;
+    };
+}
 ///
 void* load(const char* _filePath, uint32_t* _size = NULL);
 

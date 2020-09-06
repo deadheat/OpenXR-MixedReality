@@ -49,10 +49,15 @@ namespace Pbr
         {
             if (primitive.GetMaterial()->Hidden) continue;
             primitive.GetMaterial()->SetWireframe(pbrResources.GetFillMode() == FillMode::Wireframe);
+            
+            primitive.Render(pbrResources);
             primitive.GetMaterial()->Bind(pbrResources);
-            primitive.Render();
+            pbrResources.Bind();
+            pbrResources.SubmitProgram();
         }
-        bgfx::frame();
+        
+        //bgfx::frame();
+        //bgfx::frame();
         // Expect the caller to reset other state, but the geometry shader is cleared specially.
         //context->GSSetShader(nullptr, nullptr, 0);
     }
@@ -140,6 +145,7 @@ namespace Pbr
                 desc.ByteWidth = (UINT)(m_modelTransforms.size() * desc.StructureByteStride);*/
                 const uint32_t numInstances = 121;
                 const uint32_t instanceStride = sizeof(decltype(m_modelTransforms)::value_type);
+
                 if (numInstances == bgfx::getAvailInstanceDataBuffer(numInstances, instanceStride)) {
                     bgfx::allocInstanceDataBuffer(
                         &m_modelTransformsStructuredBuffer, numInstances, instanceStride);

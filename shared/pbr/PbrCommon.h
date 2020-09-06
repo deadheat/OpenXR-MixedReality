@@ -14,7 +14,8 @@
 #include <d3d11_2.h>
 #include <DirectXMath.h>
 #include <DirectXColors.h>
-#include "SampleShared/BgfxUtility.h"
+//#include <SampleShared/BgfxUtility.h>
+#include <SampleShared/bgfx_utils.h>
 
 namespace Pbr {
     namespace Internal {
@@ -100,8 +101,7 @@ namespace Pbr {
 
         bgfx::TextureHandle LoadTextureImage(_In_reads_bytes_(fileSize) const uint8_t* fileData,
                                                                   uint32_t fileSize);
-        bgfx::TextureHandle CreateFlatCubeTexture(
-            RGBAColor color, bgfx::TextureFormat::Enum format = sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM));
+        bgfx::TextureHandle CreateFlatCubeTexture(RGBAColor color, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);
         bgfx::TextureHandle
         CreateTexture(_In_reads_bytes_(size) const uint8_t* rgba,
                                                                uint32_t size,

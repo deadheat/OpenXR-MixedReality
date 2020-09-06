@@ -41,7 +41,7 @@ void PbrModelObject::Render(SceneContext& sceneContext) const {
     sceneContext.PbrResources.SetShadingMode(m_shadingMode);
     sceneContext.PbrResources.SetFillMode(m_fillMode);
     sceneContext.PbrResources.SetModelToWorld(WorldTransform());
-    sceneContext.PbrResources.Bind();
+    //sceneContext.PbrResources.Bind();
     m_pbrModel->Render(sceneContext.PbrResources);
 }
 

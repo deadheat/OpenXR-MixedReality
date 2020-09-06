@@ -1,4 +1,4 @@
-$input a_position, a_normal, a_tangent, a_color0, a_texcoord0, i_data0, i_data1, i_data2, i_data3, i_data4
+$input a_position, a_normal, a_tangent, a_color0, a_texcoord0, i_data0, i_data1, i_data2, i_data3
 $output v_positionWorld, v_TBN, v_texcoord0, v_color0
 
 #include "common.sh"
