@@ -322,12 +322,12 @@ namespace Pbr {
         bgfx::TextureHandle CreateFlatCubeTexture(RGBAColor color, bgfx::TextureFormat::Enum format) {
             // Each side is a 1x1 pixel (RGBA) image.
             const std::array<uint8_t, 4> rgbaColor = LoadRGBAUI4(color);
-            return bgfx::createTextureCube(1 /*_size*/,
+            return bgfx::createTextureCube(6 /*_size*/,
                                            false /*bool _hasMips*/,
-                                           6 /*_numLayers*/,
-                                           format,
-                                           /*uint64_t _flags = */ BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE | BGFX_CAPS_TEXTURE_CUBE_ARRAY,
-                                           bgfx::makeRef(&rgbaColor, sizeof(rgbaColor) /*constMemory* _mem = NULL*/));
+                                           1 /*_numLayers*/,
+                                           format
+                                           /*uint64_t _flags = */ /*BGFX_CAPS_TEXTURE_CUBE_ARRAY*/
+                                           /*bgfx::makeRef(&rgbaColor, sizeof(rgbaColor)*/ /*constMemory* _mem = NULL*/);
         }
 
         bgfx::TextureHandle

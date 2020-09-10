@@ -65,7 +65,7 @@ namespace Pbr {
         void AddPrimitive(Primitive primitive);
 
         // Render the model.
-        void Render(Pbr::Resources const& pbrResources) const;
+        void Render(Pbr::Resources const& pbrResources, bgfx::ViewId view) const;
 
         // Remove all primitives.
         void Clear();

@@ -45,9 +45,9 @@ namespace {
     }
 
     template <typename T>
-    void RenderObjects(std::vector<std::shared_ptr<T>> const& objects, SceneContext& sceneContext) {
+    void RenderObjects(std::vector<std::shared_ptr<T>> const& objects, SceneContext& sceneContext, bgfx::ViewId view) {
         for (const auto& object : objects) {
-            object->Render(sceneContext);
+            object->Render(sceneContext, view);
         }
     }
 } // namespace
@@ -74,9 +74,9 @@ void Scene::Update(const FrameTime& frameTime) {
     OnUpdate(frameTime);
 }
 
-void Scene::Render(const FrameTime& frameTime) {
-    RenderObjects(m_sceneObjects, m_sceneContext);
-    RenderObjects(m_quadLayerObjects, m_sceneContext);
+void Scene::Render(const FrameTime& frameTime, bgfx::ViewId view) {
+    RenderObjects(m_sceneObjects, m_sceneContext, view);
+    RenderObjects(m_quadLayerObjects, m_sceneContext, view);
 
     OnRender(frameTime);
 }

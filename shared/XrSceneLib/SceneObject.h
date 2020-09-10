@@ -60,7 +60,7 @@ public:
     DirectX::XMMATRIX WorldTransform() const;
 
     virtual void Update(const FrameTime& frameTime);
-    virtual void Render(SceneContext& sceneContext) const;
+    virtual void Render(SceneContext& sceneContext, bgfx::ViewId view) const;
 
 private:
     bool m_isVisible{true};

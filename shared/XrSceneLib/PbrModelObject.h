@@ -33,7 +33,7 @@ public:
     void SetFillMode(const Pbr::FillMode& fillMode);
     void SetBaseColorFactor(Pbr::RGBAColor color);
 
-    void Render(SceneContext& sceneContext) const override;
+    void Render(SceneContext& sceneContext, bgfx::ViewId view) const override;
 
 private:
     std::shared_ptr<Pbr::Model> m_pbrModel;

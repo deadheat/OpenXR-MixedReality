@@ -192,10 +192,10 @@ namespace Pbr {
     //    return device;
     //}
 
-    void Resources::SubmitProgram() const {
+    void Resources::SubmitProgram(bgfx::ViewId view) const {
         // Need to submit program somehow
         //(*pbrResources.m_impl.get()).Resources
-        bgfx::submit(0, m_impl->Resources.ShaderProgram.get());
+        bgfx::submit(view, m_impl->Resources.ShaderProgram.get());
         // ;
     }
 
@@ -282,6 +282,27 @@ namespace Pbr {
         // If the key already exists then the existing texture will be returned.
         return m_impl->Resources.SolidColorTextureCache.emplace(colorKey, texture).first->second;
     }
+
+    shared_bgfx_handle<bgfx::TextureHandle> Resources::CreateSolidColorTextureCube(RGBAColor color) const {
+        const std::array<uint8_t, 4> rgba = Texture::LoadRGBAUI4(color);
+
+        // Check cache to see if this flat texture already exists.
+        const uint32_t colorKey = *reinterpret_cast<const uint32_t*>(rgba.data());
+        {
+            std::lock_guard guard(m_impl->m_cacheMutex);
+            auto textureIt = m_impl->Resources.SolidColorTexture3dCache.find(colorKey);
+            if (textureIt != m_impl->Resources.SolidColorTexture3dCache.end()) {
+                return textureIt->second;
+            }
+        }
+
+        shared_bgfx_handle<bgfx::TextureHandle> texture(
+            Pbr::Texture::CreateFlatCubeTexture(color, sample::bg::DxgiFormatToBgfxFormat(DXGI_FORMAT_R8G8B8A8_UNORM)));
+        std::lock_guard guard(m_impl->m_cacheMutex);
+        // If the key already exists then the existing texture will be returned.
+        return m_impl->Resources.SolidColorTexture3dCache.emplace(colorKey, texture).first->second;
+    }
+    
     /*uniform mat4 u_viewProjection;
             uniform vec4 u_eyePosition;
             uniform mat3 u_highlightPositionLightDirectionLightColor;
@@ -321,9 +342,9 @@ namespace Pbr {
         /*static_assert(ShaderSlots::DiffuseTexture == ShaderSlots::SpecularTexture + 1, "Diffuse must follow Specular slot");
         static_assert(ShaderSlots::SpecularTexture == ShaderSlots::Brdf + 1, "Specular must follow BRDF slot");*/
 
-        bgfx::setTexture(5, m_impl->Resources.BRDFSampler.get(), m_impl->Resources.BrdfLut.get());
+        /*bgfx::setTexture(5, m_impl->Resources.BRDFSampler.get(), m_impl->Resources.BrdfLut.get());
         bgfx::setTexture(6, m_impl->Resources.SpecularSampler.get(), m_impl->Resources.SpecularEnvironmentMap.get());
-        bgfx::setTexture(7, m_impl->Resources.DiffuseSampler.get(), m_impl->Resources.DiffuseEnvironmentMap.get());
+        bgfx::setTexture(7, m_impl->Resources.DiffuseSampler.get(), m_impl->Resources.DiffuseEnvironmentMap.get());*/
 
         /*     bgfx::TextureHandle* shaderRes ources[] = {
                  m_impl->Resources.BrdfLut.get(), m_impl->Resources.SpecularEnvironmentMap.get(),

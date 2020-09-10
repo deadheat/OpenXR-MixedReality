@@ -34,7 +34,7 @@ namespace Pbr
         }
     }
 
-    void Model::Render(Pbr::Resources const& pbrResources) const
+    void Model::Render(Pbr::Resources const& pbrResources, bgfx::ViewId view) const
     {
         UpdateTransforms(pbrResources);
         // bgfx doesnt use shader slots from the looks of it and the modelTransforms are done by some internal bgfx gymnastics
@@ -53,7 +53,7 @@ namespace Pbr
             primitive.Render(pbrResources);
             primitive.GetMaterial()->Bind(pbrResources);
             pbrResources.Bind();
-            pbrResources.SubmitProgram();
+            pbrResources.SubmitProgram(view);
         }
         
         //bgfx::frame();

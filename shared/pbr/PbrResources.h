@@ -63,6 +63,7 @@ namespace Pbr {
         uint64_t StateFlags{0};
         uint64_t DepthStencilStates[2][2]; // Two dimensions for [ReverseZ][NoWrite]
         mutable std::map<uint32_t, shared_bgfx_handle<bgfx::TextureHandle>> SolidColorTextureCache;
+        mutable std::map<uint32_t, shared_bgfx_handle<bgfx::TextureHandle>> SolidColorTexture3dCache;
     };
     namespace ShaderSlots {
         enum VSResourceViews {
@@ -75,7 +76,10 @@ namespace Pbr {
             Normal,
             Occlusion,
             Emissive,
-            LastMaterialSlot = Emissive
+            Specular,
+            Diffuse,
+            BRDF,
+            LastMaterialSlot = BRDF
         };
 
         enum Pbr { // For both samplers and textures.
@@ -118,7 +122,7 @@ namespace Pbr {
         ~Resources();
 
         // Submit the program
-        void SubmitProgram() const ;
+        void SubmitProgram(bgfx::ViewId view) const;
         // Sets the Bidirectional Reflectance Distribution Function Lookup Table texture, required by the shader to compute surface
         // reflectance from the IBL.
         void SetBrdfLut(_In_ unique_bgfx_handle<bgfx::TextureHandle>&& brdfLut);
@@ -153,7 +157,7 @@ namespace Pbr {
         // Many 1x1 pixel colored textures are used in the PBR system. This is used to create textures backed by a cache to reduce the
         // number of textures created.
         shared_bgfx_handle<bgfx::TextureHandle> CreateSolidColorTexture(RGBAColor color) const;
-
+        shared_bgfx_handle<bgfx::TextureHandle> CreateSolidColorTextureCube(RGBAColor color) const; 
         // Bind the the PBR resources to the current context.
         void Bind() const;
 
@@ -170,7 +174,7 @@ namespace Pbr {
 
         void SetDepthFuncReversed(bool reverseZ);
         DeviceResources* getResources();
-
+        
     private:
         void SetState(bool blended, bool doubleSided, bool wireframe, bool disableDepthWrite) const;
 

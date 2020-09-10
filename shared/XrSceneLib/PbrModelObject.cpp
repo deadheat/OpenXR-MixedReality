@@ -33,7 +33,7 @@ std::shared_ptr<Pbr::Model> PbrModelObject::GetModel() const {
     return m_pbrModel;
 }
 
-void PbrModelObject::Render(SceneContext& sceneContext) const {
+void PbrModelObject::Render(SceneContext& sceneContext, bgfx::ViewId view) const {
     if (!IsVisible() || !m_pbrModel) {
         return;
     }
@@ -42,7 +42,7 @@ void PbrModelObject::Render(SceneContext& sceneContext) const {
     sceneContext.PbrResources.SetFillMode(m_fillMode);
     sceneContext.PbrResources.SetModelToWorld(WorldTransform());
     //sceneContext.PbrResources.Bind();
-    m_pbrModel->Render(sceneContext.PbrResources);
+    m_pbrModel->Render(sceneContext.PbrResources, view);
 }
 
 void PbrModelObject::SetShadingMode(const Pbr::ShadingMode& shadingMode) {

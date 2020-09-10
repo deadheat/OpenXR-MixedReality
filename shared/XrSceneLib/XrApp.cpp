@@ -597,7 +597,7 @@ namespace {
                 }
             }
         }
-
+        auto __handle = SceneContext().Session.Handle;
         CHECK_XRCMD(xrEndFrame(SceneContext().Session.Handle, &endFrameInfo));
     }
 

@@ -416,34 +416,13 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
                 for (const std::unique_ptr<Scene>& scene : activeScenes) {
                     if (scene->IsActive() && !std::empty(scene->GetSceneObjects())) {
                         submitProjectionLayer = true;
-                        scene->Render(frameTime);
+                        scene->Render(frameTime, viewId);
                     }
                 }
             }
 
-
-            //    // Render each cube
-            //    for (const sample::Cube* cube : cubes) {
-            //        // Compute and update the model transform for each cube, transpose for shader usage.
-            //        const DirectX::XMMATRIX modelMatrix =
-            //            DirectX::XMMatrixScaling(cube->Scale.x, cube->Scale.y, cube->Scale.z) * xr::math::LoadXrPose(cube->PoseInScene);
-            //        DirectX::XMFLOAT4X4 modelMtx;
-            //        DirectX::XMStoreFloat4x4(&modelMtx, modelMatrix);
-
-            //        bgfx::setTransform(modelMtx.m);
-
-            //        bgfx::setVertexBuffer(0, m_cubeVertexBuffer.Get());
-            //        bgfx::setIndexBuffer(m_cubeIndexBuffer.Get());
-
-            //        bgfx::setState(state);
-
-            //        // Draw the cube.
-            //        bgfx::submit(viewId, m_shaderProgram.Get());
-            //    }
-            //}
-
-            // bgfx::frame();
         }
+        bgfx::frame();
     }
     
 

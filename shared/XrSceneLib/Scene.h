@@ -28,7 +28,7 @@ struct Scene {
     explicit Scene(SceneContext& sceneContext);
 
     void Update(const FrameTime& frameTime);
-    void Render(const FrameTime& frameTime);
+    void Render(const FrameTime& frameTime, bgfx::ViewId view);
 
     // Active is true when the scene participates update and render loop.
     bool IsActive() const {

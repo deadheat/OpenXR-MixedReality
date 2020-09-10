@@ -20,7 +20,7 @@ void SceneObject::Update(const FrameTime& frameTime) {
     Motion.UpdateMotionAndPose(Pose(), frameTime.Elapsed);
 }
 
-void SceneObject::Render(SceneContext& sceneContext) const {
+void SceneObject::Render(SceneContext& sceneContext, bgfx::ViewId view) const {
 }
 
 DirectX::XMMATRIX SceneObject::LocalTransform() const {
