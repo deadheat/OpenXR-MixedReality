@@ -16,6 +16,7 @@
     <None Include="packages.config" />
     <None Include="TemporaryKey.pfx" />
     <None Include="$(OpenXRLoaderBinaryRoot)\bin\openxr_loader.dll" />
+    <None Include="ThreeSpacesUwp_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="DeploymentContent">

@@ -36,7 +36,7 @@ namespace Pbr
 
     void Model::Render(Pbr::Resources const& pbrResources, bgfx::ViewId view) const
     {
-        UpdateTransforms(pbrResources);
+        
         // bgfx doesnt use shader slots from the looks of it and the modelTransforms are done by some internal bgfx gymnastics
         //Pbr::ShaderSlots::Transforms
         //context->VSSetShaderResources(Pbr::ShaderSlots::Transforms, _countof(vsShaderResources), vsShaderResources);
@@ -49,10 +49,10 @@ namespace Pbr
         {
             if (primitive.GetMaterial()->Hidden) continue;
             primitive.GetMaterial()->SetWireframe(pbrResources.GetFillMode() == FillMode::Wireframe);
-            
+            UpdateTransforms(pbrResources);
             primitive.Render(pbrResources);
             primitive.GetMaterial()->Bind(pbrResources);
-            pbrResources.Bind();
+            //pbrResources.Bind();
             pbrResources.SubmitProgram(view);
         }
         
@@ -128,7 +128,8 @@ namespace Pbr
             std::accumulate(m_nodes.begin(), m_nodes.end(), 0, [](uint32_t sumChangeCount, const Node& node) {
                 return sumChangeCount + node.m_modifyCount;
             });
-
+        const uint32_t numInstances = 121;
+        const uint32_t instanceStride = sizeof(decltype(m_modelTransforms)::value_type);
         // If none of the node transforms have changed, no need to recompute/update the model transform structured buffer.
         if (newTotalModifyCount != TotalModifyCount || !m_modelSet) {
             if (!m_modelSet) // The structured buffer is reset when a Node is added.
@@ -143,14 +144,15 @@ namespace Pbr
                 desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
                 desc.StructureByteStride = sizeof(decltype(m_modelTransforms)::value_type);
                 desc.ByteWidth = (UINT)(m_modelTransforms.size() * desc.StructureByteStride);*/
-                const uint32_t numInstances = 121;
-                const uint32_t instanceStride = sizeof(decltype(m_modelTransforms)::value_type);
+
 
                 if (numInstances == bgfx::getAvailInstanceDataBuffer(numInstances, instanceStride)) {
                     bgfx::allocInstanceDataBuffer(
                         &m_modelTransformsStructuredBuffer, numInstances, instanceStride);
+                    m_modelSet = true;
+                } else {
+                    sample::Trace(L"Instance data creation failed");
                 }
-
 
 
                // Internal::ThrowIfFailed(pbrResources.GetDevice()->CreateBuffer(&desc, nullptr, m_modelTransformsStructuredBuffer.put()));
@@ -176,17 +178,19 @@ namespace Pbr
                                                      : XMLoadFloat4x4(&m_modelTransforms[node.ParentNodeIndex]);
                 
                 XMStoreFloat4x4(&m_modelTransforms[node.Index], XMMatrixMultiply(parentTransform, XMMatrixTranspose(node.GetTransform())));
+                //bgfx::setTransform(m_modelTransforms[node.Index].m);
+                
             }
             // this is causing errors somewhere, find a better way to set the instance data
             //bgfx::InstanceDataBuffer x;
             // Seyi NOTE: This casting may not work
-            uint8_t* data = m_modelTransformsStructuredBuffer.data;
-            memcpy(data, m_modelTransforms.data(), m_modelTransformsStructuredBuffer.stride);
+            float* data = (float*)m_modelTransformsStructuredBuffer.data;
+            memcpy(data, m_modelTransforms.data(), m_modelTransformsStructuredBuffer.stride * numInstances);
             
                 //.data = (uint8_t*) m_modelTransforms.data();
             // Update node transform structured buffer.
             //context->UpdateSubresource(m_modelTransformsStructuredBuffer.get(), 0, nullptr, this->m_modelTransforms.data(), 0, 0);
-            bgfx::setInstanceDataBuffer(&m_modelTransformsStructuredBuffer);
+            bgfx::setInstanceDataBuffer(&m_modelTransformsStructuredBuffer, 0, numInstances);
             TotalModifyCount = newTotalModifyCount;
         }
     }

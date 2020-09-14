@@ -303,6 +303,12 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
                     const FrameTime& frameTime, 
                     bool& submitProjectionLayer
     ) {
+        
+        //static int frameCount = 0;
+        //wchar_t text_buffer[20] = {0};                                               // temporary buffer
+        //swprintf(text_buffer, _countof(text_buffer), L"frame: %d \n", ++frameCount); // convert
+        //OutputDebugString(text_buffer);                                              // print
+
         const uint32_t viewInstanceCount = (uint32_t)viewProjections.size();
         /* CHECK_MSG(viewInstanceCount <= CubeShader::MaxViewInstance,
                    "Sample shader supports 2 or fewer view instances. Adjust shader to accommodate more.");*/
@@ -401,7 +407,9 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
 
             const bgfx::ViewId viewId = bgfx::ViewId(k);
             bgfx::setViewFrameBuffer(viewId, frameBuffers[k].get());
-            bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColorRgba, depthClearValue, 0);
+
+            bgfx::setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColorRgba, depthClearValue, 0);  
+
             bgfx::setViewRect(viewId,
                               (uint16_t)imageRect.offset.x,
                               (uint16_t)imageRect.offset.y,
@@ -411,7 +419,8 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
 
             bgfx::touch(viewId);
 
-
+            //activeScenes[0]->Render(frameTime, viewId);
+            //submitProjectionLayer = true;
             {
                 for (const std::unique_ptr<Scene>& scene : activeScenes) {
                     if (scene->IsActive() && !std::empty(scene->GetSceneObjects())) {

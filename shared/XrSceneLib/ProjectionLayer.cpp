@@ -190,6 +190,11 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
                              const std::vector<XrView>& views,
                              const std::vector<std::unique_ptr<Scene>>& activeScenes,
                              XrViewConfigurationType viewConfig) {
+    //static int __frameCount = 0;
+    //wchar_t text_buffer[2048] = {0};                                               // temporary buffer
+    //swprintf(text_buffer, _countof(text_buffer), L"frameIndex: %I64u, frame: %d\n\0", frameTime.FrameIndex, ++__frameCount); // convert
+    //OutputDebugString(text_buffer);                                              // print
+
 
     ViewConfigComponent& viewConfigComponent = m_viewConfigComponents.at(viewConfig);
     const sample::bg::Swapchain& colorSwapchain = *viewConfigComponent.ColorSwapchain;
@@ -217,7 +222,7 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
     
 
 
-    if ((colorSwapchainWait != XR_SUCCESS) || (depthSwapchainWait != XR_SUCCESS)) {
+    if (false/*(colorSwapchainWait != XR_SUCCESS) || (depthSwapchainWait != XR_SUCCESS)*/) {
         // Swapchain image timeout, don't submit this multi projection layer
         submitProjectionLayer = false;
     } else {
@@ -272,10 +277,8 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
             
             
         }
-        // For Hololens additive display, best to clear render target with transparent black color (0,0,0,0)
-        /*constexpr DirectX::XMVECTORF32 opaqueColor = {0.184313729f, 0.309803933f, 0.309803933f, 1.000000000f};
-        constexpr DirectX::XMVECTORF32 transparent = {0.000000000f, 0.000000000f, 0.000000000f, 0.000000000f};*/
-        const DirectX::XMVECTORF32 renderTargetClearColor = (m_environmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE) ? opaqueColor : transparent;
+        const DirectX::XMVECTORF32 renderTargetClearColor = opaqueColor;
+        //(m_environmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE) ? opaqueColor : transparent;
         switch (bgfx::getRendererType()) {
         case bgfx::RendererType::Direct3D11:
             sample::bg::RenderView(imageRect,

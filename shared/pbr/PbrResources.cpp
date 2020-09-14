@@ -226,7 +226,9 @@ namespace Pbr {
     }
 
     void XM_CALLCONV Resources::SetModelToWorld(DirectX::FXMMATRIX modelToWorld) const {
-        // XMStoreFloat4x4(&m_impl->ModelBuffer.ModelToWorld, XMMatrixTranspose(modelToWorld));
+        
+        XMStoreFloat4x4(&m_impl->ModelBuffer.ModelToWorld, XMMatrixTranspose(modelToWorld));
+        //bgfx::setTransform(m_impl->ModelBuffer.ModelToWorld.m);
         //Already do this?
         //bgfx::setUniform(m_impl->Resources.AllUniformHandles.ModelToWorld, &modelToWorld, 1);
         // context->UpdateSubresource(m_impl->Resources.ModelConstantBuffer.get(), 0, nullptr, &m_impl->ModelBuffer, 0, 0);

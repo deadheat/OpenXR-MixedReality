@@ -154,6 +154,7 @@ namespace Pbr {
         // const UINT stride = sizeof(Pbr::Vertex);
         // const UINT offset = 0;
         // bgfx::VertexBufferHandle* const vertexBuffers[] = {&m_vertexBuffer.get()};
+        //bgfx::setTransform(m_modelTransforms[node.Index].m);
         bgfx::setVertexBuffer(0, m_vertexBuffer.get());
         bgfx::setIndexBuffer(m_indexBuffer.get());
         

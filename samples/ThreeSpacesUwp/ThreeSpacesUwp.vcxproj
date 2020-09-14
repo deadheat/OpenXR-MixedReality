@@ -48,8 +48,7 @@
     <WindowsTargetPlatformMinVersion>10.0.17763.0</WindowsTargetPlatformMinVersion>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
-    <PackageCertificateThumbprint>0071016DCE22933BB0F19305D78E0794B55121C8</PackageCertificateThumbprint>
-    <PackageCertificateKeyFile>TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateThumbprint>BD68EA6C6BBB7024FF75858A8EC01599F6716835</PackageCertificateThumbprint>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -144,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TemporaryKey.pfx" />
+    <None Include="ThreeSpacesUwp_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
