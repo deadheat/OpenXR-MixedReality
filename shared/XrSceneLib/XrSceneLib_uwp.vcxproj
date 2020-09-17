@@ -121,6 +121,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\SampleShared\entry\entry.h" />
+    <ClInclude Include="BgfxRenderer.h" />
     <ClInclude Include="ControllerObject.h" />
     <ClInclude Include="PbrModelObject.h" />
     <ClInclude Include="pch.h" />
@@ -140,6 +141,7 @@
     <ClCompile Include="..\SampleShared\entry\entry.cpp" />
     <ClCompile Include="..\SampleShared\meshoptimizer\src\indexcodec.cpp" />
     <ClCompile Include="..\SampleShared\meshoptimizer\src\vertexcodec.cpp" />
+    <ClCompile Include="BgfxRenderer.cpp" />
     <ClCompile Include="ControllerObject.cpp" />
     <ClCompile Include="ObjectMotion.cpp" />
     <ClCompile Include="PbrModelObject.cpp" />
