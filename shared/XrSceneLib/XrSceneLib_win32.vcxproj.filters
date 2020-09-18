@@ -36,6 +36,7 @@
     <ClCompile Include="..\SampleShared\meshoptimizer\src\indexcodec.cpp" />
     <ClCompile Include="..\SampleShared\meshoptimizer\src\vertexcodec.cpp" />
     <ClCompile Include="..\SampleShared\entry\entry.cpp" />
+    <ClCompile Include="BgfxRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -77,6 +78,7 @@
       <Filter>Objects</Filter>
     </ClInclude>
     <ClInclude Include="..\SampleShared\entry\entry.h" />
+    <ClInclude Include="BgfxRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Objects">
