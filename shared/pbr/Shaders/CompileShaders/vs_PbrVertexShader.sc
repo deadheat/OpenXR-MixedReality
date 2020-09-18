@@ -23,11 +23,12 @@ uniform mat4 u_modelToWorld;
 void main()
 {
     mat4 transform;
-	transform[0] = i_data0;
-	transform[1] = i_data1;
-	transform[2] = i_data2;
-	transform[3] = i_data3;
+	transform[0] = vec4(1, 0, 0, 0);//i_data0;
+	transform[1] = vec4(0, 1, 0, 0);//i_data1;
+	transform[2] = vec4(0, 0, 1, 0);//i_data2;
+	transform[3] = vec4(0, 0, 0, 1);//i_data3;
 
+    a_position +=  vec4(0, 0, 1, 0);
     mat4 modelTransform = mul(transform, u_modelToWorld);
     vec4 transformedPosWorld = mul(a_position, modelTransform);
     gl_Position = mul(transformedPosWorld, u_viewProjection);

@@ -61,10 +61,11 @@ namespace {
         //
         // vertexBuffer.copy_from(&rawVertexBuffer);
         size_t numVertex = primitiveBuilder.Vertices.size();
-        size_t sizeOfVertex = sizeof(primitiveBuilder.Vertices[0]);
+        size_t sizeOfVertex = sizeof(Pbr::Vertex);
+        //we need to make sure the data stays in tact for as long bgfx needs it
+        const Pbr::Vertex* data = primitiveBuilder.Vertices.data();
         return bgfx::createVertexBuffer(
-            bgfx::makeRef(&primitiveBuilder.Vertices[0], (uint32_t)(sizeOfVertex*numVertex)),
-                                        Pbr::Vertex::ms_layout);
+            bgfx::copy(data, (uint32_t)(sizeOfVertex*numVertex)), Pbr::Vertex::ms_layout);
 
     }
 
@@ -86,7 +87,9 @@ namespace {
         /* D3D11_SUBRESOURCE_DATA initData{};
          initData.pSysMem = primitiveBuilder.Indices.data();*/
 
-        return bgfx::createIndexBuffer(bgfx::makeRef(primitiveBuilder.Indices.data(), sizeof(primitiveBuilder.Indices.data())));
+        return bgfx::createIndexBuffer(bgfx::copy(primitiveBuilder.Indices.data(),
+                                                     (uint32_t)(sizeof(primitiveBuilder.Indices[0]) * primitiveBuilder.Indices.size())),
+                                       BGFX_BUFFER_INDEX32);
     }
 } // namespace
 

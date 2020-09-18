@@ -76,7 +76,8 @@ namespace sample::bg {
                     void* depthTexture
                     ,const std::vector<std::unique_ptr<Scene>>& activeScenes,
                     const FrameTime& frameTime, 
-                    bool& submitProjectionLayer
+                    bool& submitProjectionLayer,
+                    SceneContext& sceneContext
     );
     std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
         XrSession session,

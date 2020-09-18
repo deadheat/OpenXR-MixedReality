@@ -156,17 +156,17 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
                                                std::optional<XrViewConfigurationType> viewConfigurationForSwapchain) {
         Swapchain* swapchain;
         std::unique_ptr<SwapchainD3D11> swapchainD3D11;
-        std::unique_ptr<SwapchainD3D12> swapchainD3D12;
+        //std::unique_ptr<SwapchainD3D12> swapchainD3D12;
         switch (bgfx::getRendererType()) {
         case bgfx::RendererType::Direct3D11:
             swapchainD3D11 = std::make_unique<SwapchainD3D11>();
             swapchain = swapchainD3D11.get();
             break;
 
-        case bgfx::RendererType::Direct3D12:
-            swapchainD3D12 = std::make_unique<SwapchainD3D12>();
-            swapchain = swapchainD3D12.get();
-            break;
+        //case bgfx::RendererType::Direct3D12:
+        //    swapchainD3D12 = std::make_unique<SwapchainD3D12>();
+        //    swapchain = swapchainD3D12.get();
+        //    break;
 
         default:
             CHECK(false);
@@ -247,9 +247,9 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
             init.type = bgfx::RendererType::Direct3D11;
             break;
 
-        case bgfx::RendererType::Direct3D12:
+        /*case bgfx::RendererType::Direct3D12:
             init.type = bgfx::RendererType::Direct3D12;
-            break;
+            break;*/
 
         default:
             CHECK(false);
@@ -270,6 +270,7 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
                 featureLevels.push_back(level);
             }
         }
+
 
         if (featureLevels.size() == 0) {
             throw std::exception("Unsupported minimum feature level!");
@@ -301,7 +302,8 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
                     void* depthTexture
                     ,const std::vector<std::unique_ptr<Scene>>& activeScenes,
                     const FrameTime& frameTime, 
-                    bool& submitProjectionLayer
+                    bool& submitProjectionLayer,
+                    SceneContext& sceneContext
     ) {
         
         //static int frameCount = 0;
@@ -339,40 +341,40 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
 
             CachedFrameBuffer frameBuffer;
 
-            if (bgfx::getRendererType() == bgfx::RendererType::Direct3D12) {
-                ID3D12Device* device = reinterpret_cast<ID3D12Device*>(bgfx::getInternalData()->context);
+            //if (bgfx::getRendererType() == bgfx::RendererType::Direct3D12) {
+            //    ID3D12Device* device = reinterpret_cast<ID3D12Device*>(bgfx::getInternalData()->context);
 
-                CHECK_HRCMD(device->CreateCommandAllocator(
-                    D3D12_COMMAND_LIST_TYPE_DIRECT, IID_ID3D12CommandAllocator, frameBuffer.CommandAllocator.put_void()));
+            //    CHECK_HRCMD(device->CreateCommandAllocator(
+            //        D3D12_COMMAND_LIST_TYPE_DIRECT, IID_ID3D12CommandAllocator, frameBuffer.CommandAllocator.put_void()));
 
-                winrt::com_ptr<ID3D12GraphicsCommandList> commandList;
-                CHECK_HRCMD(device->CreateCommandList(0,
-                                                      D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                      frameBuffer.CommandAllocator.get(),
-                                                      nullptr,
-                                                      winrt::guid_of<ID3D12GraphicsCommandList>(),
-                                                      commandList.put_void()));
+            //    winrt::com_ptr<ID3D12GraphicsCommandList> commandList;
+            //    CHECK_HRCMD(device->CreateCommandList(0,
+            //                                          D3D12_COMMAND_LIST_TYPE_DIRECT,
+            //                                          frameBuffer.CommandAllocator.get(),
+            //                                          nullptr,
+            //                                          winrt::guid_of<ID3D12GraphicsCommandList>(),
+            //                                          commandList.put_void()));
 
-                // Bgfx is expecting a depth texture with COMMON state, but OpenXR is providing a texture with DEPTH_WRITE state. Need to
-                // switch it.
-                D3D12_RESOURCE_BARRIER barrier;
-                barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-                barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-                barrier.Transition.pResource = reinterpret_cast<ID3D12Resource*>(depthTexture);
-                barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-                barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-                barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
-                commandList->ResourceBarrier(1, &barrier);
+            //    // Bgfx is expecting a depth texture with COMMON state, but OpenXR is providing a texture with DEPTH_WRITE state. Need to
+            //    // switch it.
+            //    D3D12_RESOURCE_BARRIER barrier;
+            //    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+            //    barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+            //    barrier.Transition.pResource = reinterpret_cast<ID3D12Resource*>(depthTexture);
+            //    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+            //    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+            //    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_COMMON;
+            //    commandList->ResourceBarrier(1, &barrier);
 
-                winrt::com_ptr<ID3D12CommandQueue> commandQueue;
-                UINT size = sizeof(commandQueue.get());
-                CHECK_HRCMD(device->GetPrivateData(IID_ID3D12CommandQueue, &size, commandQueue.put()));
+            //    winrt::com_ptr<ID3D12CommandQueue> commandQueue;
+            //    UINT size = sizeof(commandQueue.get());
+            //    CHECK_HRCMD(device->GetPrivateData(IID_ID3D12CommandQueue, &size, commandQueue.put()));
 
-                CHECK_HRCMD(commandList->Close());
+            //    CHECK_HRCMD(commandList->Close());
 
-                ID3D12CommandList* commandLists[] = {commandList.get()};
-                commandQueue->ExecuteCommandLists((UINT)std::size(commandLists), commandLists);
-            }
+            //    ID3D12CommandList* commandLists[] = {commandList.get()};
+            //    commandQueue->ExecuteCommandLists((UINT)std::size(commandLists), commandLists);
+            //}
 
             frameBuffer.FrameBuffers.resize(viewInstanceCount);
             for (uint32_t k = 0; k < viewInstanceCount; k++) {
@@ -415,12 +417,18 @@ std::unique_ptr<Swapchain> __stdcall CreateSwapchain(
                               (uint16_t)imageRect.offset.y,
                               (uint16_t)imageRect.extent.width,
                               (uint16_t)imageRect.extent.height);
+
+            sceneContext.PbrResources.SetViewProjection(spaceToView, projectionMatrix);
+            // sceneContext.PbrResources.Bind();
+            sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
+
+
+
             bgfx::setViewTransform(viewId, view.m, proj.m);
 
             bgfx::touch(viewId);
 
-            //activeScenes[0]->Render(frameTime, viewId);
-            //submitProjectionLayer = true;
+
             {
                 for (const std::unique_ptr<Scene>& scene : activeScenes) {
                     if (scene->IsActive() && !std::empty(scene->GetSceneObjects())) {

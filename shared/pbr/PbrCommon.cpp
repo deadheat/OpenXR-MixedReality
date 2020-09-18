@@ -339,7 +339,7 @@ namespace Pbr {
                                          1 /*_numLayers*/,
                                          format /*TextureFormat::Enum_format*/,
                                          /*uint64_t _flags = */ BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE,
-                                         bgfx::makeRef(rgba, size));
+                                         bgfx::copy(rgba, size));
         }
 
         // from what I can tell this is handled internally in bgfx, but I could be wrong

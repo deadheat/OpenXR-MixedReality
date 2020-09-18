@@ -37,7 +37,7 @@ namespace {
             CHECK_XRCMD(xrCreateReferenceSpace(m_sceneContext.Session.Handle, &createInfo, m_viewSpace.Put()));
 
             constexpr float margin = 0.01f;
-            constexpr float titleWidth = 0.5f;
+            constexpr float titleWidth = 0.6f;
             constexpr float titleHeight = titleWidth / 3;
             const auto& material = Pbr::Material::CreateFlat(m_sceneContext.PbrResources, Pbr::FromSRGB(Colors::DarkGray));
             m_background = AddSceneObject(CreateQuad(m_sceneContext.PbrResources, {titleWidth, titleHeight}, material));

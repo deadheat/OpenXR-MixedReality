@@ -60,6 +60,8 @@ void PbrModelObject::SetBaseColorFactor(const Pbr::RGBAColor color) {
     }
 }
 
+
+
 std::shared_ptr<PbrModelObject> CreateCube(const Pbr::Resources& pbrResources,
                                          XMFLOAT3 sideLengths,
                                          const Pbr::RGBAColor color,

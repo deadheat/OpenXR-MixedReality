@@ -168,7 +168,7 @@ namespace Pbr {
         }
 
         // In bgfx all the state is set at once and not broken up
-        pbrResources.SetState(m_alphaBlended, m_alphaBlended, m_doubleSided, m_wireframe);
+        pbrResources.SetState(m_alphaBlended, true /*m_doubleSided*/, m_wireframe, false /*m_disableDepthWrite*/);
         // Force BGFX to create the texture now, which is necessary in order to use overrideInternal.
         //bgfx::touch();
         //setUniform(textures[0], textures.data(), (UINT)textures.size());

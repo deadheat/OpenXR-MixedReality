@@ -32,7 +32,6 @@ public:
     void SetShadingMode(const Pbr::ShadingMode& shadingMode);
     void SetFillMode(const Pbr::FillMode& fillMode);
     void SetBaseColorFactor(Pbr::RGBAColor color);
-
     void Render(SceneContext& sceneContext, bgfx::ViewId view) const override;
 
 private:

@@ -169,7 +169,7 @@ void ProjectionLayer::PrepareRendering(const SceneContext& sceneContext,
     viewConfigComponent.ProjectionViews.resize(viewConfigViews.size());
     viewConfigComponent.DepthInfo.resize(viewConfigViews.size());
     //Moved resource binding here so its not binding everytime it renders
-    sceneContext.PbrResources.Bind();
+    //sceneContext.PbrResources.Bind();
 }
 
 uint32_t AquireAndWaitForSwapchainImage(XrSwapchain handle) {
@@ -235,12 +235,15 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
             viewProjections[viewIndex] = {views[viewIndex].pose, views[viewIndex].fov, m_nearFar};
             const XrView& projection = views[viewIndex];
             DirectX::XMMATRIX worldToViewMatrix = xr::math::LoadInvertedXrPose(projectionViews[viewIndex].pose);
+            //worldToViewMatrix.r[0].m128_f32[0] = 0.0;
+            //worldToViewMatrix.r[0].m128_f32[1] = 20.0;
 
             const XrFovf fov = projection.fov;
             const DirectX::XMMATRIX projectionMatrix = xr::math::ComposeProjectionMatrix(fov, currentConfig.NearFar);
-            sceneContext.PbrResources.SetViewProjection(worldToViewMatrix, projectionMatrix);
-            // sceneContext.PbrResources.Bind();
-            sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
+            
+            //sceneContext.PbrResources.SetViewProjection(worldToViewMatrix, projectionMatrix);
+            //// sceneContext.PbrResources.Bind();
+            //sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
             const XrPosef viewPose = projection.pose;
             xr::math::NearFar NearFar = currentConfig.NearFar;
             const float normalizedViewportMinDepth = 0;
@@ -277,8 +280,7 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
             
             
         }
-        const DirectX::XMVECTORF32 renderTargetClearColor = opaqueColor;
-        //(m_environmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE) ? opaqueColor : transparent;
+        const DirectX::XMVECTORF32 renderTargetClearColor = opaqueColor; //(m_environmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_OPAQUE) ? opaqueColor : transparent;
         switch (bgfx::getRendererType()) {
         case bgfx::RendererType::Direct3D11:
             sample::bg::RenderView(imageRect,
@@ -290,11 +292,13 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
                                    ((sample::bg::SwapchainD3D11&)(depthSwapchain)).Images[depthSwapchainWait].texture
                                    ,activeScenes,
                                    frameTime,
-                                   submitProjectionLayer
+                                   submitProjectionLayer,
+                                   sceneContext
+                               
             );
             break;
 
-        case bgfx::RendererType::Enum::Direct3D12:
+        case 4: // bgfx::RendererType::Enum::Direct3D12:
             printf("Direct3d12");
             /*sample::bg::RenderView(
                 imageRect,

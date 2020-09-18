@@ -128,7 +128,7 @@ namespace Pbr
             std::accumulate(m_nodes.begin(), m_nodes.end(), 0, [](uint32_t sumChangeCount, const Node& node) {
                 return sumChangeCount + node.m_modifyCount;
             });
-        const uint32_t numInstances = 121;
+        const uint32_t numInstances = 1;
         const uint32_t instanceStride = sizeof(decltype(m_modelTransforms)::value_type);
         // If none of the node transforms have changed, no need to recompute/update the model transform structured buffer.
         if (newTotalModifyCount != TotalModifyCount || !m_modelSet) {

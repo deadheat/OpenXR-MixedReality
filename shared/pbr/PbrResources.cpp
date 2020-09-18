@@ -227,7 +227,7 @@ namespace Pbr {
 
     void XM_CALLCONV Resources::SetModelToWorld(DirectX::FXMMATRIX modelToWorld) const {
         
-        XMStoreFloat4x4(&m_impl->ModelBuffer.ModelToWorld, XMMatrixTranspose(modelToWorld));
+        XMStoreFloat4x4(&m_impl->ModelBuffer.ModelToWorld, DirectX::XMMatrixTranspose(modelToWorld));
         //bgfx::setTransform(m_impl->ModelBuffer.ModelToWorld.m);
         //Already do this?
         //bgfx::setUniform(m_impl->Resources.AllUniformHandles.ModelToWorld, &modelToWorld, 1);
@@ -238,8 +238,9 @@ namespace Pbr {
     // float[3][3] u_highlightPositionLightDirectionLightColor;
     // float[4] u_numSpecularMipLevelsAnimationTime;
     void XM_CALLCONV Resources::SetViewProjection(DirectX::FXMMATRIX view, DirectX::CXMMATRIX projection) {
-        XMStoreFloat4x4(&m_impl->SceneUniformsInstance.u_viewProjection, XMMatrixTranspose(XMMatrixMultiply(view, projection)));
-        XMStoreFloat4(&m_impl->SceneUniformsInstance.u_eyePosition, XMMatrixInverse(nullptr, view).r[3]);
+        XMStoreFloat4x4(&m_impl->SceneUniformsInstance.u_viewProjection,
+                        DirectX::XMMatrixTranspose(DirectX::XMMatrixMultiply(view, projection)));
+        XMStoreFloat4(&m_impl->SceneUniformsInstance.u_eyePosition, DirectX::XMMatrixInverse(nullptr, view).r[3]);
     }
 
     void Resources::SetEnvironmentMap(_In_ unique_bgfx_handle<bgfx::TextureHandle>&& specularEnvironmentMap,
@@ -388,6 +389,7 @@ namespace Pbr {
     }
 
     void Resources::SetState(bool blended, bool doubleSided, bool wireframe, bool disableDepthWrite) const {
+
         // I dereference because .get returns a pointer to the flag but I need the actual flag to or it
         // Set blend state
         m_impl->Resources.StateFlags =
