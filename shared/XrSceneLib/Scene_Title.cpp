@@ -87,7 +87,7 @@ namespace {
                 XrPosef titleInScene = titleInView * viewInScene.pose;
                 titleInScene.position.y = 0.5f; // floating in the top of user's view
                 XrVector3f forward = titleInScene.position - viewInScene.pose.position;
-                m_targetPose = Pose::LookAt(titleInScene.position, forward, {0, 1, 0});
+                m_targetPose = Pose::LookAt(titleInScene.position, Normalize(forward), {0, 1, 0});
 
                 if (!m_background->IsVisible()) {
                     m_background->SetVisible(true);

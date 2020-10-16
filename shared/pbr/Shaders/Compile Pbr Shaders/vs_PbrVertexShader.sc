@@ -30,9 +30,8 @@ void main()
 	transform[3] = i_data3;
 
     mat4 modelTransform = mul(transform, u_modelToWorld);
-    //a_position = a_position + vec4(0,0,1,0);
     vec4 transformedPosWorld = mul(a_position, modelTransform);
-    gl_Position = mul(transformedPosWorld, u_viewProjection);// u_viewProjection);
+    gl_Position = mul(transformedPosWorld, u_viewProjection);
     v_positionWorld = transformedPosWorld.xyz / transformedPosWorld.w;
 
     vec3 normalW = normalize(mul(vec4(a_normal.x, a_normal.y, a_normal.z, 0.0), modelTransform).xyz);

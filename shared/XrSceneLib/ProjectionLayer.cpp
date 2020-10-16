@@ -242,9 +242,9 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
             const XrFovf fov = projection.fov;
             const DirectX::XMMATRIX projectionMatrix = xr::math::ComposeProjectionMatrix(fov, currentConfig.NearFar);
             
-            //sceneContext.PbrResources.SetViewProjection(worldToViewMatrix, projectionMatrix);
-            //// sceneContext.PbrResources.Bind();
-            //sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
+            sceneContext.PbrResources.SetViewProjection(worldToViewMatrix, projectionMatrix);
+            // sceneContext.PbrResources.Bind();
+            sceneContext.PbrResources.SetDepthFuncReversed(reversedZ);
             const XrPosef viewPose = projection.pose;
             xr::math::NearFar NearFar = currentConfig.NearFar;
             const float normalizedViewportMinDepth = 0;
@@ -293,9 +293,7 @@ bool ProjectionLayer::Render(SceneContext& sceneContext,
                                    ((sample::bg::SwapchainD3D11&)(depthSwapchain)).Images[depthSwapchainWait].texture
                                    ,activeScenes,
                                    frameTime,
-                                   submitProjectionLayer,
-                                   sceneContext
-                               
+                                   submitProjectionLayer                               
             );
             break;
 

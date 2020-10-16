@@ -1,5 +1,5 @@
 // shaderc command line:
-// C:\Users\t-ololu\source\repos\bgfx\.build\win32_vs2017\bin\shadercDebug -i ./ --type fragment --debug -O 0 --platform windows -p ps_5_0 -O 3 -f fs_PbrPixelShader.sc -o ShaderTemp.bin.h --bin2c fs_PbrPixelShader_dx11
+// ..\..\..\ext\bgfx\.build\win64_vs2019\bin\shadercDebug -i ./ --type fragment --debug -O 0 --platform windows -p ps_5_0 -O 3 -f fs_PbrPixelShader.sc -o ShaderTemp.bin.h --bin2c fs_PbrPixelShader_dx11
 
 float intBitsToFloat(int _x) { return asfloat(_x); }
 float2 intBitsToFloat(uint2 _x) { return asfloat(_x); }

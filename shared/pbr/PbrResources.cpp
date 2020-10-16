@@ -70,10 +70,8 @@ namespace Pbr {
 
             Resources.AllUniformHandles.ViewProjection = bgfx::createUniform("u_viewProjection", bgfx::UniformType::Mat4, 1);
             Resources.AllUniformHandles.EyePosition = bgfx::createUniform("u_eyePosition", bgfx::UniformType::Vec4, 1);
-            Resources.AllUniformHandles.HighlightPositionLightDirectionLightColor =
-                bgfx::createUniform("u_highlightPositionLightDirectionLightColor", bgfx::UniformType::Mat3, 1);
-            Resources.AllUniformHandles.NumSpecularMipLevelsAnimationTime =
-                bgfx::createUniform("u_numSpecularMipLevelsAnimationTime", bgfx::UniformType::Vec4, 1);
+            Resources.AllUniformHandles.HighlightPositionLightDirectionLightColor = bgfx::createUniform("u_highlightPositionLightDirectionLightColor", bgfx::UniformType::Mat3, 1);
+            Resources.AllUniformHandles.NumSpecularMipLevelsAnimationTime = bgfx::createUniform("u_numSpecularMipLevelsAnimationTime", bgfx::UniformType::Vec4, 1);
             /*static_assert((sizeof(SceneConstantBuffer) % 16) == 0, "Constant Buffer must be divisible by 16 bytes");
             const CD3D11_BUFFER_DESC pbrConstantBufferDesc(sizeof(SceneConstantBuffer), D3D11_BIND_CONSTANT_BUFFER);
             Internal::ThrowIfFailed(device->CreateBuffer(&pbrConstantBufferDesc, nullptr, Resources.SceneConstantBuffer.put()));*/

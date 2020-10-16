@@ -125,8 +125,7 @@ namespace Pbr {
                 memcpy(vert.Tangent, &(tangent), sizeof(vert.Tangent));
                 memcpy(vert.TexCoord0, &(textureCoordinate), sizeof(vert.TexCoord0));
                 memcpy(vert.Color0, &(vertexColor), sizeof(vert.Color0));
-
-
+                vert.Position[3] = 1.0f;
                 //vert.ModelTransformIndex = transformIndex;
                 Vertices.push_back(vert);
             }
@@ -237,10 +236,10 @@ namespace Pbr {
                                                 Pbr::NodeIndex_t transformIndex,
                                                 RGBAColor vertexColor) {
         const DirectX::XMFLOAT2 halfSideLength = {sideLengths.x / 2, sideLengths.y / 2};
-        const DirectX::XMFLOAT4 vertices[4] = {{-halfSideLength.x, -halfSideLength.y, 0,0}, // LB
-                                               {-halfSideLength.x, halfSideLength.y, 0,0},  // LT
-                                               {halfSideLength.x, halfSideLength.y, 0,0},   // RT
-                                               {halfSideLength.x, -halfSideLength.y, 0,0}}; // RB
+        const DirectX::XMFLOAT4 vertices[4] = {{-halfSideLength.x, -halfSideLength.y, 0,1}, // LB
+                                               {-halfSideLength.x, halfSideLength.y, 0,1},  // LT
+                                               {halfSideLength.x, halfSideLength.y, 0,1},   // RT
+                                               {halfSideLength.x, -halfSideLength.y, 0,1}}; // RB
         const DirectX::XMFLOAT2 uvs[4] = {
             {0, textureCoord.y},
             {0, 0},
@@ -259,8 +258,6 @@ namespace Pbr {
 
         Pbr::Vertex vert;
        
-
-
         float _normal[3] = {0, 0, 1};
         float _tangent[4] = {1, 0, 0, 0};
         //vert.Color0 = vertexColor;
